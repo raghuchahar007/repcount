@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { generateWhatsAppLink, templates } from '@/lib/whatsapp'
-import { formatCurrency, daysSince } from '@/lib/utils'
+import { formatCurrency, daysSince, todayIST } from '@/lib/utils'
 import Link from 'next/link'
 
 interface RenewalMember {
@@ -27,48 +27,53 @@ export default function RenewalsPage() {
   useEffect(() => { loadRenewals() }, [])
 
   async function loadRenewals() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: gym } = await supabase
-      .from('gyms').select('id, name, upi_id').eq('owner_id', user.id).single()
-    if (!gym) return
-    setGymName(gym.name)
-    setGymUpi(gym.upi_id || '')
+      const { data: gym } = await supabase
+        .from('gyms').select('id, name, upi_id').eq('owner_id', user.id).single()
+      if (!gym) return
+      setGymName(gym.name)
+      setGymUpi(gym.upi_id || '')
 
-    const today = new Date().toISOString().split('T')[0]
-    const sevenDays = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+      const today = todayIST()
+      const sevenDays = new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
 
-    // Get members whose latest membership is expiring or expired
-    const { data } = await supabase
-      .from('members')
-      .select('id, name, phone, memberships(expiry_date, amount, plan_type)')
-      .eq('gym_id', gym.id)
-      .eq('is_active', true)
+      // Get members whose latest membership is expiring or expired
+      const { data } = await supabase
+        .from('members')
+        .select('id, name, phone, memberships(expiry_date, amount, plan_type)')
+        .eq('gym_id', gym.id)
+        .eq('is_active', true)
 
-    const renewalList: RenewalMember[] = []
-    ;(data || []).forEach((m: any) => {
-      const latest = m.memberships?.sort((a: any, b: any) =>
-        new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime()
-      )?.[0]
+      const renewalList: RenewalMember[] = []
+      ;(data || []).forEach((m: any) => {
+        const latest = m.memberships?.sort((a: any, b: any) =>
+          new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime()
+        )?.[0]
 
-      if (latest && latest.expiry_date <= sevenDays) {
-        renewalList.push({
-          id: m.id,
-          name: m.name,
-          phone: m.phone,
-          expiry_date: latest.expiry_date,
-          amount: latest.amount,
-          plan_type: latest.plan_type,
-          days_overdue: Math.max(0, daysSince(latest.expiry_date)),
-        })
-      }
-    })
+        if (latest && latest.expiry_date <= sevenDays) {
+          renewalList.push({
+            id: m.id,
+            name: m.name,
+            phone: m.phone,
+            expiry_date: latest.expiry_date,
+            amount: latest.amount,
+            plan_type: latest.plan_type,
+            days_overdue: Math.max(0, daysSince(latest.expiry_date)),
+          })
+        }
+      })
 
-    renewalList.sort((a, b) => a.days_overdue - b.days_overdue)
-    setMembers(renewalList)
-    setLoading(false)
+      renewalList.sort((a, b) => a.days_overdue - b.days_overdue)
+      setMembers(renewalList)
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (loading) return <div className="p-4 space-y-2">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-bg-card rounded-xl animate-pulse" />)}</div>

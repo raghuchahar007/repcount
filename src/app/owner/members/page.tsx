@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { todayIST } from '@/lib/utils'
 import Link from 'next/link'
 
 interface MemberRow {
@@ -32,26 +33,31 @@ function MembersContent() {
   }, [searchParams])
 
   async function loadMembers() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: gym } = await supabase
-      .from('gyms').select('id').eq('owner_id', user.id).single()
-    if (!gym) return
+      const { data: gym } = await supabase
+        .from('gyms').select('id').eq('owner_id', user.id).single()
+      if (!gym) return
 
-    const { data } = await supabase
-      .from('members')
-      .select('*, memberships(expiry_date, amount, status)')
-      .eq('gym_id', gym.id)
-      .order('created_at', { ascending: false })
+      const { data } = await supabase
+        .from('members')
+        .select('*, memberships(expiry_date, amount, status)')
+        .eq('gym_id', gym.id)
+        .order('created_at', { ascending: false })
 
-    setMembers(data || [])
-    setLoading(false)
+      setMembers(data || [])
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const today = new Date().toISOString().split('T')[0]
-  const sevenDays = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
+  const today = todayIST()
+  const sevenDays = new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
 
   const filteredMembers = members.filter(m => {
     // Search filter
@@ -74,6 +80,18 @@ function MembersContent() {
         return true
     }
   })
+
+  const getDaysText = (expiryDate: string) => {
+    const expiry = new Date(expiryDate)
+    const now = new Date()
+    // Reset time portion for accurate day diff
+    expiry.setHours(0, 0, 0, 0)
+    now.setHours(0, 0, 0, 0)
+    const diffDays = Math.round((expiry.getTime() - now.getTime()) / 86400000)
+    if (diffDays < 0) return { text: `${Math.abs(diffDays)} days overdue`, className: 'text-status-red' }
+    if (diffDays <= 7) return { text: `expires in ${diffDays} days`, className: 'text-status-yellow' }
+    return { text: `expires in ${diffDays} days`, className: 'text-text-muted' }
+  }
 
   const getStatus = (m: MemberRow) => {
     const latest = m.memberships?.[0]
@@ -149,11 +167,14 @@ function MembersContent() {
                   </div>
                   <div className="text-right">
                     <Badge color={status.color}>{status.label}</Badge>
-                    {member.memberships?.[0] && (
-                      <p className="text-[10px] text-text-muted mt-1">
-                        Exp: {new Date(member.memberships[0].expiry_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                      </p>
-                    )}
+                    {member.memberships?.[0] && (() => {
+                      const days = getDaysText(member.memberships[0].expiry_date)
+                      return (
+                        <p className={`text-[10px] mt-1 ${days.className}`}>
+                          {days.text}
+                        </p>
+                      )
+                    })()}
                   </div>
                 </Card>
               </Link>
@@ -161,9 +182,15 @@ function MembersContent() {
           })}
           {filteredMembers.length === 0 && (
             <Card className="p-8 text-center">
-              <p className="text-text-muted text-sm">
-                {search ? 'No members found' : 'No members in this category'}
+              <span className="text-3xl">👥</span>
+              <p className="text-text-muted text-sm mt-2">
+                {search ? 'No members found' : members.length === 0 ? 'No members yet' : 'No members in this category'}
               </p>
+              {!search && members.length === 0 && (
+                <Link href="/owner/members/add" className="text-accent-orange text-xs mt-1 inline-block">
+                  Add your first member
+                </Link>
+              )}
             </Card>
           )}
         </div>

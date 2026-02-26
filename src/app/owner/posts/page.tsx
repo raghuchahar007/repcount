@@ -15,22 +15,27 @@ export default function PostsPage() {
   useEffect(() => { loadPosts() }, [])
 
   async function loadPosts() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: gym } = await supabase
-      .from('gyms').select('id').eq('owner_id', user.id).single()
-    if (!gym) return
+      const { data: gym } = await supabase
+        .from('gyms').select('id').eq('owner_id', user.id).single()
+      if (!gym) return
 
-    const { data } = await supabase
-      .from('gym_posts')
-      .select('*')
-      .eq('gym_id', gym.id)
-      .order('created_at', { ascending: false })
+      const { data } = await supabase
+        .from('gym_posts')
+        .select('*')
+        .eq('gym_id', gym.id)
+        .order('created_at', { ascending: false })
 
-    setPosts(data || [])
-    setLoading(false)
+      setPosts(data || [])
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
+    }
   }
 
   const getPostType = (type: string) => POST_TYPES.find(t => t.value === type) || POST_TYPES[3]

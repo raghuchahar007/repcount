@@ -1,4 +1,10 @@
 // Date helpers
+
+/** Returns today's date as YYYY-MM-DD in IST (Asia/Kolkata) */
+export function todayIST(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+}
+
 export function formatDate(date: string | Date): string {
   return new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
 }

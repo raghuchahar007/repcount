@@ -18,23 +18,28 @@ export default function FeedPage() {
   useEffect(() => { loadFeed() }, [])
 
   async function loadFeed() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: member } = await supabase
-      .from('members').select('id, gym_id').eq('user_id', user.id).eq('is_active', true).single()
-    if (!member) { setLoading(false); return }
-    setMemberId(member.id)
+      const { data: member } = await supabase
+        .from('members').select('id, gym_id').eq('user_id', user.id).eq('is_active', true).single()
+      if (!member) return
+      setMemberId(member.id)
 
-    const [postsRes, participantsRes] = await Promise.all([
-      supabase.from('gym_posts').select('*').eq('gym_id', member.gym_id).eq('is_published', true).order('created_at', { ascending: false }).limit(20),
-      supabase.from('challenge_participants').select('post_id').eq('member_id', member.id),
-    ])
+      const [postsRes, participantsRes] = await Promise.all([
+        supabase.from('gym_posts').select('*').eq('gym_id', member.gym_id).eq('is_published', true).order('created_at', { ascending: false }).limit(20),
+        supabase.from('challenge_participants').select('post_id').eq('member_id', member.id),
+      ])
 
-    setPosts(postsRes.data || [])
-    setJoinedChallenges(new Set((participantsRes.data || []).map(p => p.post_id)))
-    setLoading(false)
+      setPosts(postsRes.data || [])
+      setJoinedChallenges(new Set((participantsRes.data || []).map(p => p.post_id)))
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function joinChallenge(postId: string) {

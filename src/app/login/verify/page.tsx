@@ -53,6 +53,24 @@ export default function VerifyPage() {
     }
   }
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    if (!pasted) return
+    const newOtp = [...otp]
+    for (let i = 0; i < 6; i++) {
+      newOtp[i] = pasted[i] || ''
+    }
+    setOtp(newOtp)
+    // Focus the next empty input or the last one
+    const nextEmpty = newOtp.findIndex(d => d === '')
+    inputRefs.current[nextEmpty >= 0 ? nextEmpty : 5]?.focus()
+    // Auto-submit if all filled
+    if (newOtp.every(d => d !== '')) {
+      handleVerify(newOtp.join(''))
+    }
+  }
+
   const handleVerify = async (code?: string) => {
     const otpCode = code || otp.join('')
     if (otpCode.length !== 6) {
@@ -134,7 +152,7 @@ export default function VerifyPage() {
         </div>
 
         {/* OTP Inputs */}
-        <div className="flex justify-center gap-2.5 mb-6">
+        <div className="flex justify-center gap-2 mb-6">
           {otp.map((digit, i) => (
             <input
               key={i}
@@ -145,7 +163,8 @@ export default function VerifyPage() {
               value={digit}
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
-              className="w-11 h-13 text-center text-xl font-bold bg-bg-card border border-border rounded-lg text-text-primary focus:border-accent-orange focus:outline-none transition-colors"
+              onPaste={handlePaste}
+              className="w-12 h-14 text-center text-xl font-bold bg-bg-card border border-border rounded-lg text-text-primary focus:border-accent-orange focus:outline-none transition-colors"
             />
           ))}
         </div>

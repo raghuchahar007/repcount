@@ -17,28 +17,33 @@ export default function ReferPage() {
   useEffect(() => { loadReferralData() }, [])
 
   async function loadReferralData() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: member } = await supabase
-      .from('members').select('id, name, gym_id, gyms(name, slug)').eq('user_id', user.id).eq('is_active', true).single()
+      const { data: member } = await supabase
+        .from('members').select('id, name, gym_id, gyms(name, slug)').eq('user_id', user.id).eq('is_active', true).single()
 
-    if (!member) { setLoading(false); return }
-    setMemberName(member.name)
-    setGymName((member.gyms as any)?.name || '')
-    setGymSlug((member.gyms as any)?.slug || '')
+      if (!member) return
+      setMemberName(member.name)
+      setGymName((member.gyms as any)?.name || '')
+      setGymSlug((member.gyms as any)?.slug || '')
 
-    // Get referral leads
-    const { data: leads } = await supabase
-      .from('leads')
-      .select('*')
-      .eq('referrer_member_id', member.id)
-      .order('created_at', { ascending: false })
+      // Get referral leads
+      const { data: leads } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('referrer_member_id', member.id)
+        .order('created_at', { ascending: false })
 
-    setReferrals(leads || [])
-    setReferralCount(leads?.length || 0)
-    setLoading(false)
+      setReferrals(leads || [])
+      setReferralCount(leads?.length || 0)
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
+    }
   }
 
   const referralLink = typeof window !== 'undefined'

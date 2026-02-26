@@ -66,7 +66,7 @@ const DIET_TEMPLATES: Record<string, DietPlan> = {
     name: 'Non-Veg Muscle Gain Plan',
     goal: 'muscle_gain',
     totalCalories: 2600,
-    totalProtein: 160,
+    totalProtein: 165,
     meals: [
       { time: '7:00 AM', name: 'Breakfast', nameHi: 'नाश्ता', items: ['Egg bhurji (4 eggs)', '2 Toast', 'Banana'], calories: 500, protein: 30 },
       { time: '10:00 AM', name: 'Snack', nameHi: 'स्नैक', items: ['Boiled eggs (2)', 'Dry fruits'], calories: 250, protein: 18 },
@@ -102,6 +102,47 @@ const DIET_TEMPLATES: Record<string, DietPlan> = {
       { time: '9:00 PM', name: 'Dinner', nameHi: 'रात का खाना', items: ['Paneer (150g)', '2 Roti', 'Dal', 'Egg salad'], calories: 550, protein: 38 },
     ],
   },
+  'nonveg-general': {
+    name: 'Non-Veg Balanced Plan',
+    goal: 'general',
+    totalCalories: 2200,
+    totalProtein: 100,
+    meals: [
+      { time: '7:30 AM', name: 'Breakfast', nameHi: 'नाश्ता', items: ['Egg omelette (2 eggs)', 'Toast (2)', 'Chai'], calories: 450, protein: 18 },
+      { time: '10:30 AM', name: 'Snack', nameHi: 'स्नैक', items: ['Boiled egg (1)', 'Fruit'], calories: 150, protein: 8 },
+      { time: '1:00 PM', name: 'Lunch', nameHi: 'दोपहर का खाना', items: ['Chicken curry (150g)', '2 Roti', 'Rice (small)', 'Salad'], calories: 700, protein: 35 },
+      { time: '4:30 PM', name: 'Evening', nameHi: 'शाम', items: ['Peanuts (handful)', 'Chai'], calories: 250, protein: 7 },
+      { time: '8:00 PM', name: 'Dinner', nameHi: 'रात का खाना', items: ['Fish curry (150g)', '2 Roti', 'Dal', 'Salad'], calories: 650, protein: 32 },
+    ],
+  },
+  'egg-weight_loss': {
+    name: 'Eggetarian Weight Loss Plan',
+    goal: 'weight_loss',
+    totalCalories: 1600,
+    totalProtein: 90,
+    meals: [
+      { time: '7:00 AM', name: 'Breakfast', nameHi: 'नाश्ता', items: ['Egg white omelette (3)', 'Toast (1)', 'Green tea'], calories: 300, protein: 22 },
+      { time: '10:00 AM', name: 'Snack', nameHi: 'स्नैक', items: ['Boiled egg (1)', 'Cucumber'], calories: 100, protein: 8 },
+      { time: '1:00 PM', name: 'Lunch', nameHi: 'दोपहर का खाना', items: ['Egg curry (2 eggs)', '1 Roti', 'Salad (big)', 'Curd'], calories: 450, protein: 22 },
+      { time: '4:00 PM', name: 'Evening', nameHi: 'शाम', items: ['Sprouts chaat', 'Nimbu pani'], calories: 150, protein: 8 },
+      { time: '8:00 PM', name: 'Dinner', nameHi: 'रात का खाना', items: ['Paneer bhurji (100g)', '1 Roti', 'Salad'], calories: 450, protein: 22 },
+      { time: '9:30 PM', name: 'Late Snack', nameHi: 'देर का नाश्ता', items: ['Warm milk (1 glass)'], calories: 150, protein: 8 },
+    ],
+  },
+  'egg-general': {
+    name: 'Eggetarian Balanced Plan',
+    goal: 'general',
+    totalCalories: 2000,
+    totalProtein: 95,
+    meals: [
+      { time: '7:30 AM', name: 'Breakfast', nameHi: 'नाश्ता', items: ['Egg bhurji (2 eggs)', 'Paratha (1)', 'Chai'], calories: 420, protein: 18 },
+      { time: '10:30 AM', name: 'Snack', nameHi: 'स्नैक', items: ['Boiled egg (1)', 'Handful almonds'], calories: 150, protein: 10 },
+      { time: '1:00 PM', name: 'Lunch', nameHi: 'दोपहर का खाना', items: ['Egg curry (2 eggs)', '2 Roti', 'Rice (small)', 'Salad', 'Curd'], calories: 600, protein: 25 },
+      { time: '4:30 PM', name: 'Evening', nameHi: 'शाम', items: ['Makhana (1 bowl)', 'Green tea'], calories: 130, protein: 5 },
+      { time: '8:00 PM', name: 'Dinner', nameHi: 'रात का खाना', items: ['Paneer sabzi (100g)', '2 Roti', 'Dal', 'Salad'], calories: 550, protein: 27 },
+      { time: '9:30 PM', name: 'Late Snack', nameHi: 'देर का नाश्ता', items: ['Warm milk with turmeric'], calories: 150, protein: 10 },
+    ],
+  },
 }
 
 export default function DietPage() {
@@ -111,19 +152,24 @@ export default function DietPage() {
   useEffect(() => { loadDiet() }, [])
 
   async function loadDiet() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: member } = await supabase
-      .from('members').select('goal, diet_pref').eq('user_id', user.id).eq('is_active', true).single()
+      const { data: member } = await supabase
+        .from('members').select('goal, diet_pref').eq('user_id', user.id).eq('is_active', true).single()
 
-    if (member) {
-      const key = `${member.diet_pref}-${member.goal}`
-      const template = DIET_TEMPLATES[key] || DIET_TEMPLATES['veg-general']
-      setPlan(template)
+      if (member) {
+        const key = `${member.diet_pref}-${member.goal}`
+        const template = DIET_TEMPLATES[key] || DIET_TEMPLATES['veg-general']
+        setPlan(template)
+      }
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   if (loading) {

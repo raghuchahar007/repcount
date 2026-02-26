@@ -32,32 +32,37 @@ export default function SettingsPage() {
   useEffect(() => { loadGym() }, [])
 
   async function loadGym() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: gym } = await supabase
-      .from('gyms').select('*').eq('owner_id', user.id).single()
+      const { data: gym } = await supabase
+        .from('gyms').select('*').eq('owner_id', user.id).single()
 
-    if (gym) {
-      setGymId(gym.id)
-      setForm({
-        name: gym.name || '',
-        slug: gym.slug || '',
-        address: gym.address || '',
-        phone: gym.phone || '',
-        description: gym.description || '',
-        opening_time: gym.opening_time || '06:00',
-        closing_time: gym.closing_time || '22:00',
-        upi_id: gym.upi_id || '',
-        monthly: gym.pricing?.monthly?.toString() || '',
-        quarterly: gym.pricing?.quarterly?.toString() || '',
-        half_yearly: gym.pricing?.half_yearly?.toString() || '',
-        yearly: gym.pricing?.yearly?.toString() || '',
-        facilities: gym.facilities || [],
-      })
+      if (gym) {
+        setGymId(gym.id)
+        setForm({
+          name: gym.name || '',
+          slug: gym.slug || '',
+          address: gym.address || '',
+          phone: gym.phone || '',
+          description: gym.description || '',
+          opening_time: gym.opening_time || '06:00',
+          closing_time: gym.closing_time || '22:00',
+          upi_id: gym.upi_id || '',
+          monthly: gym.pricing?.monthly?.toString() || '',
+          quarterly: gym.pricing?.quarterly?.toString() || '',
+          half_yearly: gym.pricing?.half_yearly?.toString() || '',
+          yearly: gym.pricing?.yearly?.toString() || '',
+          facilities: gym.facilities || [],
+        })
+      }
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const update = (field: string, value: string) => {
@@ -135,7 +140,7 @@ export default function SettingsPage() {
       <Card className="p-4 space-y-3">
         <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Basic Info</p>
         <Input label="Gym Name" placeholder="Iron Paradise Gym" value={form.name} onChange={(e) => update('name', e.target.value)} />
-        <Input label="URL Slug" placeholder="iron-paradise-gym" value={form.slug} onChange={(e) => update('slug', e.target.value)} />
+        <Input label="Gym Page URL" placeholder="iron-paradise-gym" value={form.slug} onChange={(e) => update('slug', e.target.value)} />
         <Input label="Address" placeholder="Near Main Market, Agra" value={form.address} onChange={(e) => update('address', e.target.value)} />
         <Input label="Phone" type="tel" placeholder="9876543210" value={form.phone} onChange={(e) => update('phone', e.target.value)} />
         <div>

@@ -334,6 +334,11 @@ CREATE POLICY "Members can view own attendance"
     member_id IN (SELECT id FROM members WHERE user_id = auth.uid())
   );
 
+CREATE POLICY "Members can view gym attendance for leaderboard"
+  ON attendance FOR SELECT USING (
+    gym_id IN (SELECT gym_id FROM members WHERE user_id = auth.uid() AND is_active = true)
+  );
+
 CREATE POLICY "Members can insert own attendance"
   ON attendance FOR INSERT WITH CHECK (
     member_id IN (SELECT id FROM members WHERE user_id = auth.uid())
@@ -363,6 +368,11 @@ CREATE POLICY "Owners can manage leads"
 
 CREATE POLICY "Anyone can create leads"
   ON leads FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Members can view own referrals"
+  ON leads FOR SELECT USING (
+    referrer_member_id IN (SELECT id FROM members WHERE user_id = auth.uid())
+  );
 
 -- Gym photos: anyone can view, owners can manage
 CREATE POLICY "Anyone can view gym photos"

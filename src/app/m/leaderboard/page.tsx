@@ -20,45 +20,50 @@ export default function LeaderboardPage() {
 
   async function loadLeaderboard() {
     setLoading(true)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: member } = await supabase
-      .from('members').select('id, gym_id').eq('user_id', user.id).eq('is_active', true).single()
-    if (!member) { setLoading(false); return }
-    setCurrentMemberId(member.id)
+      const { data: member } = await supabase
+        .from('members').select('id, gym_id').eq('user_id', user.id).eq('is_active', true).single()
+      if (!member) return
+      setCurrentMemberId(member.id)
 
-    // Get attendance for this gym
-    let query = supabase
-      .from('attendance')
-      .select('member_id, members(name)')
-      .eq('gym_id', member.gym_id)
+      // Get attendance for this gym
+      let query = supabase
+        .from('attendance')
+        .select('member_id, members(name)')
+        .eq('gym_id', member.gym_id)
 
-    if (period === 'month') {
-      const monthStart = new Date()
-      monthStart.setDate(1)
-      monthStart.setHours(0, 0, 0, 0)
-      query = query.gte('checked_in_at', monthStart.toISOString())
+      if (period === 'month') {
+        const monthStart = new Date()
+        monthStart.setDate(1)
+        monthStart.setHours(0, 0, 0, 0)
+        query = query.gte('checked_in_at', monthStart.toISOString())
+      }
+
+      const { data: attendance } = await query
+
+      // Count check-ins per member
+      const counts: Record<string, { name: string; count: number }> = {}
+      ;(attendance || []).forEach((a: any) => {
+        const id = a.member_id
+        if (!counts[id]) counts[id] = { name: a.members?.name || 'Unknown', count: 0 }
+        counts[id].count++
+      })
+
+      const sorted = Object.entries(counts)
+        .map(([id, data]) => ({ member_id: id, member_name: data.name, check_ins: data.count, rank: 0 }))
+        .sort((a, b) => b.check_ins - a.check_ins)
+
+      sorted.forEach((entry, i) => { entry.rank = i + 1 })
+      setLeaderboard(sorted)
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
     }
-
-    const { data: attendance } = await query
-
-    // Count check-ins per member
-    const counts: Record<string, { name: string; count: number }> = {}
-    ;(attendance || []).forEach((a: any) => {
-      const id = a.member_id
-      if (!counts[id]) counts[id] = { name: a.members?.name || 'Unknown', count: 0 }
-      counts[id].count++
-    })
-
-    const sorted = Object.entries(counts)
-      .map(([id, data]) => ({ member_id: id, member_name: data.name, check_ins: data.count, rank: 0 }))
-      .sort((a, b) => b.check_ins - a.check_ins)
-
-    sorted.forEach((entry, i) => { entry.rank = i + 1 })
-    setLeaderboard(sorted)
-    setLoading(false)
   }
 
   const medals = ['🥇', '🥈', '🥉']

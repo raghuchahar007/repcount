@@ -16,23 +16,28 @@ export default function LeadsPage() {
   useEffect(() => { loadLeads() }, [])
 
   async function loadLeads() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: gym } = await supabase
-      .from('gyms').select('id, name').eq('owner_id', user.id).single()
-    if (!gym) return
-    setGymName(gym.name)
+      const { data: gym } = await supabase
+        .from('gyms').select('id, name').eq('owner_id', user.id).single()
+      if (!gym) return
+      setGymName(gym.name)
 
-    const { data } = await supabase
-      .from('leads')
-      .select('*')
-      .eq('gym_id', gym.id)
-      .order('created_at', { ascending: false })
+      const { data } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('gym_id', gym.id)
+        .order('created_at', { ascending: false })
 
-    setLeads(data || [])
-    setLoading(false)
+      setLeads(data || [])
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function updateLeadStatus(leadId: string, status: string) {
@@ -106,7 +111,8 @@ export default function LeadsPage() {
           ))}
           {filteredLeads.length === 0 && (
             <Card className="p-8 text-center">
-              <p className="text-text-muted text-sm">No leads yet</p>
+              <span className="text-3xl">📋</span>
+              <p className="text-text-muted text-sm mt-2">No leads yet</p>
               <p className="text-text-muted text-xs mt-1">Share your gym page to start getting leads</p>
             </Card>
           )}

@@ -9,6 +9,7 @@ function LoginForm() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [phoneHint, setPhoneHint] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -65,9 +66,20 @@ function LoginForm() {
                 type="tel"
                 placeholder="9876543210"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  const cleaned = raw.replace(/\D/g, '').slice(0, 10)
+                  setPhone(cleaned)
+                  if (raw !== cleaned && raw.length > 0) {
+                    setPhoneHint('Numbers only')
+                    setTimeout(() => setPhoneHint(''), 1500)
+                  }
+                }}
                 maxLength={10}
+                inputMode="numeric"
+                pattern="[0-9]*"
                 className="flex-1"
+                error={phoneHint || undefined}
               />
             </div>
           </div>

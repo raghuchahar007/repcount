@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { todayIST } from '@/lib/utils'
 
 export default function AttendancePage() {
   const [checkedIn, setCheckedIn] = useState(false)
@@ -15,38 +16,48 @@ export default function AttendancePage() {
   useEffect(() => { loadAttendance() }, [])
 
   async function loadAttendance() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: member } = await supabase
-      .from('members').select('id, gym_id').eq('user_id', user.id).eq('is_active', true).single()
-    if (!member) { setLoading(false); return }
+      const { data: member } = await supabase
+        .from('members').select('id, gym_id').eq('user_id', user.id).eq('is_active', true).single()
+      if (!member) return
 
-    const today = new Date().toISOString().split('T')[0]
-    const monthStart = `${today.slice(0, 7)}-01`
+      const today = todayIST()
+      const monthStart = `${today.slice(0, 7)}-01`
 
-    const [todayRes, monthRes] = await Promise.all([
-      supabase.from('attendance').select('id').eq('member_id', member.id).gte('checked_in_at', `${today}T00:00:00`).limit(1),
-      supabase.from('attendance').select('checked_in_at').eq('member_id', member.id).gte('checked_in_at', `${monthStart}T00:00:00`).order('checked_in_at', { ascending: false }),
-    ])
+      const [todayRes, monthRes, streakRes] = await Promise.all([
+        // today check
+        supabase.from('attendance').select('id').eq('member_id', member.id).gte('checked_in_at', `${today}T00:00:00`).limit(1),
+        // current month for calendar
+        supabase.from('attendance').select('checked_in_at').eq('member_id', member.id).gte('checked_in_at', `${monthStart}T00:00:00`).order('checked_in_at', { ascending: false }),
+        // last 60 days for streak calculation
+        supabase.from('attendance').select('checked_in_at').eq('member_id', member.id).gte('checked_in_at', new Date(Date.now() - 60 * 86400000).toISOString()).order('checked_in_at', { ascending: false }),
+      ])
 
-    setCheckedIn((todayRes.data?.length || 0) > 0)
+      setCheckedIn((todayRes.data?.length || 0) > 0)
 
-    const dates = monthRes.data?.map(a => a.checked_in_at.split('T')[0]) || []
-    setMonthData([...new Set(dates)])
+      const dates = monthRes.data?.map(a => a.checked_in_at.split('T')[0]) || []
+      setMonthData([...new Set(dates)])
 
-    // Streak calc
-    let s = 0
-    const uniqueDates = [...new Set(dates)].sort().reverse()
-    for (let i = 0; i < uniqueDates.length; i++) {
-      const expected = new Date()
-      expected.setDate(expected.getDate() - i)
-      if (uniqueDates[i] === expected.toISOString().split('T')[0]) s++
-      else break
+      // Streak calc using last 60 days of data
+      let s = 0
+      const streakDates = streakRes.data?.map(a => a.checked_in_at.split('T')[0]) || []
+      const uniqueDates = [...new Set(streakDates)].sort().reverse()
+      for (let i = 0; i < uniqueDates.length; i++) {
+        const expected = new Date()
+        expected.setDate(expected.getDate() - i)
+        if (uniqueDates[i] === expected.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })) s++
+        else break
+      }
+      setStreak(s)
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
     }
-    setStreak(s)
-    setLoading(false)
   }
 
   async function handleCheckIn() {
@@ -76,8 +87,8 @@ export default function AttendancePage() {
 
       setCheckedIn(true)
       setStreak(prev => prev + 1)
-      const today = new Date().toISOString().split('T')[0]
-      setMonthData(prev => [today, ...prev])
+      const todayStr = todayIST()
+      setMonthData(prev => [todayStr, ...prev])
     } catch (err: any) {
       setError(err.message || 'Check-in failed')
     } finally {
@@ -126,6 +137,7 @@ export default function AttendancePage() {
         </Card>
       ) : (
         <Card className="p-6 text-center">
+          <p className="text-xs text-text-muted mb-3">Tap the button when you arrive at the gym</p>
           <Button onClick={handleCheckIn} loading={checking} size="lg" fullWidth>
             📍 Check In Now
           </Button>

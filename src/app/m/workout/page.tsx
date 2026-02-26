@@ -146,23 +146,41 @@ export default function WorkoutPage() {
 
   useEffect(() => { loadWorkout() }, [])
 
+  // After workout data loads, auto-select today's day tab
+  useEffect(() => {
+    if (!workout) return
+    const dayName = new Date().toLocaleDateString('en-US', { weekday: 'long' })
+    const idx = workout.days.findIndex(d => d.day === dayName)
+    if (idx >= 0) setSelectedDay(idx)
+  }, [workout])
+
   async function loadWorkout() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: member } = await supabase
-      .from('members').select('goal').eq('user_id', user.id).eq('is_active', true).single()
+      const { data: member } = await supabase
+        .from('members').select('goal').eq('user_id', user.id).eq('is_active', true).single()
 
-    if (member) {
-      const key = `${member.goal}-beginner`
-      setWorkout(WORKOUT_TEMPLATES[key] || WORKOUT_TEMPLATES['general-beginner'])
+      if (member) {
+        const key = `${member.goal}-beginner`
+        setWorkout(WORKOUT_TEMPLATES[key] || WORKOUT_TEMPLATES['general-beginner'])
+      }
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   if (loading) return <div className="p-4 space-y-4">{[1, 2].map(i => <div key={i} className="h-32 bg-bg-card rounded-2xl animate-pulse" />)}</div>
-  if (!workout) return <div className="p-4 text-center"><p className="text-text-muted">No workout plan available</p></div>
+  if (!workout) return (
+    <div className="p-4 text-center min-h-[60vh] flex flex-col items-center justify-center">
+      <span className="text-5xl mb-4">💪</span>
+      <p className="text-text-muted">No workout plan assigned yet</p>
+    </div>
+  )
 
   const day = workout.days[selectedDay]
 

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { todayIST } from '@/lib/utils'
 
 interface Metric {
   date: string
@@ -24,24 +25,29 @@ export default function ProgressPage() {
   useEffect(() => { loadProgress() }, [])
 
   async function loadProgress() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: member } = await supabase
-      .from('members').select('id').eq('user_id', user.id).eq('is_active', true).single()
-    if (!member) { setLoading(false); return }
-    setMemberId(member.id)
+      const { data: member } = await supabase
+        .from('members').select('id').eq('user_id', user.id).eq('is_active', true).single()
+      if (!member) return
+      setMemberId(member.id)
 
-    const { data } = await supabase
-      .from('progress_metrics')
-      .select('*')
-      .eq('member_id', member.id)
-      .order('date', { ascending: false })
-      .limit(20)
+      const { data } = await supabase
+        .from('progress_metrics')
+        .select('*')
+        .eq('member_id', member.id)
+        .order('date', { ascending: false })
+        .limit(20)
 
-    setMetrics(data || [])
-    setLoading(false)
+      setMetrics(data || [])
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function handleSave() {
@@ -50,7 +56,7 @@ export default function ProgressPage() {
 
     setSaving(true)
     const supabase = createClient()
-    const today = new Date().toISOString().split('T')[0]
+    const today = todayIST()
 
     await supabase.from('progress_metrics').upsert({
       member_id: memberId,

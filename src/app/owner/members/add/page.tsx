@@ -11,6 +11,7 @@ export default function AddMemberPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showOptional, setShowOptional] = useState(false)
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -77,7 +78,7 @@ export default function AddMemberPage() {
       }
 
       // Insert membership/payment
-      await supabase.from('memberships').insert({
+      const { error: msError } = await supabase.from('memberships').insert({
         member_id: member.id,
         gym_id: gym.id,
         plan_type: form.plan_type,
@@ -87,6 +88,11 @@ export default function AddMemberPage() {
         payment_method: form.payment_method,
         status: 'active',
       })
+
+      if (msError) {
+        setError('Member created but plan could not be saved. Please add the plan from the member detail page.')
+        return
+      }
 
       router.push('/owner/members')
     } catch (err: any) {
@@ -115,58 +121,12 @@ export default function AddMemberPage() {
             type="tel"
             placeholder="9876543210"
             value={form.phone}
-            onChange={(e) => update('phone', e.target.value)}
+            onChange={(e) => update('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
             maxLength={10}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            error={form.phone.length > 0 && form.phone.length < 10 ? 'Enter 10-digit number' : undefined}
           />
-          <Input
-            label="Date of Birth (optional)"
-            type="date"
-            value={form.dob}
-            onChange={(e) => update('dob', e.target.value)}
-          />
-        </Card>
-
-        {/* Goal & Preference */}
-        <Card className="p-4 space-y-3">
-          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Goal & Diet</p>
-          <div>
-            <label className="block text-xs text-text-secondary mb-2">Fitness Goal</label>
-            <div className="flex gap-2">
-              {GOALS.map(g => (
-                <button
-                  key={g.value}
-                  type="button"
-                  onClick={() => update('goal', g.value)}
-                  className={`flex-1 py-2 px-2 rounded-lg text-[11px] font-medium text-center transition-colors ${
-                    form.goal === g.value
-                      ? 'bg-accent-orange text-white'
-                      : 'bg-bg-hover text-text-secondary border border-border'
-                  }`}
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="block text-xs text-text-secondary mb-2">Diet Preference</label>
-            <div className="flex gap-2">
-              {DIET_PREFS.map(d => (
-                <button
-                  key={d.value}
-                  type="button"
-                  onClick={() => update('diet_pref', d.value)}
-                  className={`flex-1 py-2 px-2 rounded-lg text-[11px] font-medium text-center transition-colors ${
-                    form.diet_pref === d.value
-                      ? 'bg-accent-orange text-white'
-                      : 'bg-bg-hover text-text-secondary border border-border'
-                  }`}
-                >
-                  {d.emoji} {d.label}
-                </button>
-              ))}
-            </div>
-          </div>
         </Card>
 
         {/* Payment */}
@@ -219,17 +179,78 @@ export default function AddMemberPage() {
           </div>
         </Card>
 
-        {/* Notes */}
-        <Card className="p-4">
-          <label className="block text-xs text-text-secondary mb-2">Notes (optional)</label>
-          <textarea
-            placeholder="Any notes about this member..."
-            value={form.notes}
-            onChange={(e) => update('notes', e.target.value)}
-            rows={2}
-            className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-orange focus:outline-none resize-none"
-          />
-        </Card>
+        {/* Optional Details Toggle */}
+        <button
+          type="button"
+          onClick={() => setShowOptional(prev => !prev)}
+          className="text-xs text-text-secondary flex items-center gap-1"
+        >
+          <span className={`inline-block transition-transform ${showOptional ? 'rotate-180' : ''}`}>▼</span>
+          More Details (optional)
+        </button>
+
+        {showOptional && (
+          <>
+            <Card className="p-4 space-y-3">
+              <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Personal</p>
+              <Input
+                label="Date of Birth"
+                type="date"
+                value={form.dob}
+                onChange={(e) => update('dob', e.target.value)}
+              />
+              <div>
+                <label className="block text-xs text-text-secondary mb-2">Fitness Goal</label>
+                <div className="flex gap-2">
+                  {GOALS.map(g => (
+                    <button
+                      key={g.value}
+                      type="button"
+                      onClick={() => update('goal', g.value)}
+                      className={`flex-1 py-2 px-2 rounded-lg text-[11px] font-medium text-center transition-colors ${
+                        form.goal === g.value
+                          ? 'bg-accent-orange text-white'
+                          : 'bg-bg-hover text-text-secondary border border-border'
+                      }`}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-text-secondary mb-2">Diet Preference</label>
+                <div className="flex gap-2">
+                  {DIET_PREFS.map(d => (
+                    <button
+                      key={d.value}
+                      type="button"
+                      onClick={() => update('diet_pref', d.value)}
+                      className={`flex-1 py-2 px-2 rounded-lg text-[11px] font-medium text-center transition-colors ${
+                        form.diet_pref === d.value
+                          ? 'bg-accent-orange text-white'
+                          : 'bg-bg-hover text-text-secondary border border-border'
+                      }`}
+                    >
+                      {d.emoji} {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4">
+              <label className="block text-xs text-text-secondary mb-2">Notes</label>
+              <textarea
+                placeholder="Any notes about this member..."
+                value={form.notes}
+                onChange={(e) => update('notes', e.target.value)}
+                rows={2}
+                className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-orange focus:outline-none resize-none"
+              />
+            </Card>
+          </>
+        )}
 
         {error && <p className="text-status-red text-xs text-center">{error}</p>}
 

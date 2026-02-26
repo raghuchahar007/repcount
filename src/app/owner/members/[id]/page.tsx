@@ -26,37 +26,51 @@ export default function MemberDetailPage() {
   })
   const [gymName, setGymName] = useState('')
   const [gymUpi, setGymUpi] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     loadMember()
   }, [id])
 
   async function loadMember() {
-    const supabase = createClient()
+    try {
+      const supabase = createClient()
 
-    const [memberRes, membershipsRes, attendanceRes] = await Promise.all([
-      supabase.from('members').select('*').eq('id', id).single(),
-      supabase.from('memberships').select('*').eq('member_id', id).order('created_at', { ascending: false }),
-      supabase.from('attendance').select('*').eq('member_id', id).order('checked_in_at', { ascending: false }).limit(10),
-    ])
+      // Get the current user's gym first
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    if (memberRes.data) {
-      setMember(memberRes.data)
-      // Get gym info for WhatsApp messages
       const { data: gym } = await supabase
-        .from('gyms').select('name, upi_id').eq('id', memberRes.data.gym_id).single()
-      if (gym) {
+        .from('gyms').select('id, name, upi_id').eq('owner_id', user.id).single()
+      if (!gym) return
+
+      const [memberRes, membershipsRes, attendanceRes] = await Promise.all([
+        supabase.from('members').select('*').eq('id', id).eq('gym_id', gym.id).single(),
+        supabase.from('memberships').select('*').eq('member_id', id).order('created_at', { ascending: false }),
+        supabase.from('attendance').select('*').eq('member_id', id).order('checked_in_at', { ascending: false }).limit(10),
+      ])
+
+      if (memberRes.data) {
+        setMember(memberRes.data)
         setGymName(gym.name)
         setGymUpi(gym.upi_id || '')
       }
+      setMemberships(membershipsRes.data || [])
+      setRecentAttendance(attendanceRes.data || [])
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
+      setLoading(false)
     }
-    setMemberships(membershipsRes.data || [])
-    setRecentAttendance(attendanceRes.data || [])
-    setLoading(false)
   }
 
   const handleRecordPayment = async () => {
     if (!member || !paymentForm.amount) return
+    if (Number(paymentForm.amount) <= 0) return
+
+    setError('')
+    setSaving(true)
     const supabase = createClient()
 
     const startDate = new Date()
@@ -66,7 +80,7 @@ export default function MemberDetailPage() {
     }
     expiryDate.setDate(expiryDate.getDate() + (planDays[paymentForm.plan_type] || 30))
 
-    await supabase.from('memberships').insert({
+    const { error: payError } = await supabase.from('memberships').insert({
       member_id: member.id,
       gym_id: member.gym_id,
       plan_type: paymentForm.plan_type,
@@ -77,6 +91,13 @@ export default function MemberDetailPage() {
       status: 'active',
     })
 
+    if (payError) {
+      setError('Failed to record payment. Please try again.')
+      setSaving(false)
+      return
+    }
+
+    setSaving(false)
     setShowPaymentForm(false)
     loadMember()
   }
@@ -222,9 +243,10 @@ export default function MemberDetailPage() {
               </button>
             ))}
           </div>
+          {error && <p className="text-status-red text-xs text-center">{error}</p>}
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => setShowPaymentForm(false)} className="flex-1">Cancel</Button>
-            <Button size="sm" onClick={handleRecordPayment} className="flex-1">Save Payment</Button>
+            <Button size="sm" onClick={handleRecordPayment} loading={saving} className="flex-1">Save Payment</Button>
           </div>
         </Card>
       )}

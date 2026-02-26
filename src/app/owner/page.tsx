@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, todayIST } from '@/lib/utils'
 import Link from 'next/link'
 
 interface DashboardStats {
@@ -32,74 +32,86 @@ export default function OwnerDashboard() {
   }, [])
 
   async function loadDashboard() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    // Get owner's gym
-    const { data: gym } = await supabase
-      .from('gyms')
-      .select('id')
-      .eq('owner_id', user.id)
-      .single()
+      // Get owner's gym
+      const { data: gym } = await supabase
+        .from('gyms')
+        .select('id')
+        .eq('owner_id', user.id)
+        .single()
 
-    if (!gym) {
+      if (!gym) {
+        return
+      }
+
+      setGymId(gym.id)
+      const today = todayIST()
+      const monthStart = `${today.slice(0, 7)}-01`
+      const sevenDaysLater = new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+
+      // Parallel queries
+      const twoWeeksAgo = new Date(Date.now() - 14 * 86400000).toISOString()
+
+      const [
+        membersRes,
+        overdueRes,
+        expiringRes,
+        leadsRes,
+        revenueRes,
+        attendanceRes,
+        recentRes,
+        inactiveRes,
+      ] = await Promise.all([
+        // Total members
+        supabase.from('members').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('is_active', true),
+        // Overdue memberships
+        supabase.from('memberships').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('status', 'active').lt('expiry_date', today),
+        // Expiring within 7 days
+        supabase.from('memberships').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('status', 'active').gte('expiry_date', today).lte('expiry_date', sevenDaysLater),
+        // New leads
+        supabase.from('leads').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('status', 'new'),
+        // This month's revenue
+        supabase.from('memberships').select('amount').eq('gym_id', gym.id).gte('paid_at', monthStart),
+        // Today's attendance
+        supabase.from('attendance').select('id', { count: 'exact' }).eq('gym_id', gym.id).gte('checked_in_at', `${today}T00:00:00`),
+        // Recent members with latest membership
+        supabase
+          .from('members')
+          .select(`*, memberships(expiry_date, amount, plan_type, status)`)
+          .eq('gym_id', gym.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(5),
+        // Inactive members (no check-in in 2+ weeks)
+        supabase.from('members').select('id, attendance(checked_in_at)').eq('gym_id', gym.id).eq('is_active', true).lt('attendance.checked_in_at', twoWeeksAgo),
+      ])
+
+      const monthlyRevenue = revenueRes.data?.reduce((sum, m) => sum + Number(m.amount), 0) || 0
+
+      setStats({
+        totalMembers: membersRes.count || 0,
+        activeMembers: membersRes.count || 0,
+        overdueCount: overdueRes.count || 0,
+        expiringCount: expiringRes.count || 0,
+        inactiveCount: inactiveRes.data?.filter(m => {
+          const lastCheckin = m.attendance?.[0]?.checked_in_at
+          return !lastCheckin || lastCheckin < twoWeeksAgo
+        }).length || 0,
+        newLeadsCount: leadsRes.count || 0,
+        monthRevenue: monthlyRevenue,
+        todayAttendance: attendanceRes.count || 0,
+      })
+
+      setRecentMembers(recentRes.data || [])
+    } catch {
+      // silently handle - page shows empty/fallback state
+    } finally {
       setLoading(false)
-      return
     }
-
-    setGymId(gym.id)
-    const today = new Date().toISOString().split('T')[0]
-    const monthStart = `${today.slice(0, 7)}-01`
-    const sevenDaysLater = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]
-
-    // Parallel queries
-    const [
-      membersRes,
-      overdueRes,
-      expiringRes,
-      leadsRes,
-      revenueRes,
-      attendanceRes,
-      recentRes,
-    ] = await Promise.all([
-      // Total members
-      supabase.from('members').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('is_active', true),
-      // Overdue memberships
-      supabase.from('memberships').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('status', 'active').lt('expiry_date', today),
-      // Expiring within 7 days
-      supabase.from('memberships').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('status', 'active').gte('expiry_date', today).lte('expiry_date', sevenDaysLater),
-      // New leads
-      supabase.from('leads').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('status', 'new'),
-      // This month's revenue
-      supabase.from('memberships').select('amount').eq('gym_id', gym.id).gte('paid_at', monthStart),
-      // Today's attendance
-      supabase.from('attendance').select('id', { count: 'exact' }).eq('gym_id', gym.id).gte('checked_in_at', `${today}T00:00:00`),
-      // Recent members with latest membership
-      supabase
-        .from('members')
-        .select(`*, memberships(expiry_date, amount, plan_type, status)`)
-        .eq('gym_id', gym.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(5),
-    ])
-
-    const monthlyRevenue = revenueRes.data?.reduce((sum, m) => sum + Number(m.amount), 0) || 0
-
-    setStats({
-      totalMembers: membersRes.count || 0,
-      activeMembers: membersRes.count || 0,
-      overdueCount: overdueRes.count || 0,
-      expiringCount: expiringRes.count || 0,
-      inactiveCount: 0,
-      newLeadsCount: leadsRes.count || 0,
-      monthRevenue: monthlyRevenue,
-      todayAttendance: attendanceRes.count || 0,
-    })
-
-    setRecentMembers(recentRes.data || [])
-    setLoading(false)
   }
 
   if (loading) {
@@ -189,10 +201,14 @@ export default function OwnerDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <Link href="/owner/members/add" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">➕</span>
           <p className="text-[10px] text-text-secondary mt-1">Add Member</p>
+        </Link>
+        <Link href="/owner/renewals" className="bg-bg-card border border-border rounded-xl p-3 text-center">
+          <span className="text-xl">🔄</span>
+          <p className="text-[10px] text-text-secondary mt-1">Renewals</p>
         </Link>
         <Link href="/owner/members/import" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">📷</span>
