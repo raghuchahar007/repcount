@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [membership, setMembership] = useState<any>(null)
   const [stats, setStats] = useState({ totalVisits: 0, badges: 0 })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => { loadProfile() }, [])
 
@@ -43,7 +44,7 @@ export default function ProfilePage() {
         })
       }
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -56,6 +57,15 @@ export default function ProfilePage() {
   }
 
   if (loading) return <div className="p-4 space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-bg-card rounded-2xl animate-pulse" />)}</div>
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadProfile() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   const phoneDisplay = member?.phone || profile?.phone || ''
   const goalLabel = GOALS.find(g => g.value === member?.goal)?.label || ''
@@ -80,17 +90,17 @@ export default function ProfilePage() {
       <div className="grid grid-cols-3 gap-3">
         <Card className="p-3 text-center">
           <p className="text-xl font-bold text-text-primary">{stats.totalVisits}</p>
-          <p className="text-[10px] text-text-secondary">Total Visits</p>
+          <p className="text-[11px] text-text-secondary">Total Visits</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-xl font-bold text-text-primary">{stats.badges}</p>
-          <p className="text-[10px] text-text-secondary">Badges</p>
+          <p className="text-[11px] text-text-secondary">Badges</p>
         </Card>
         <Card className="p-3 text-center">
           <p className={`text-xl font-bold ${!member ? 'text-text-muted' : isExpired ? 'text-status-red' : 'text-status-green'}`}>
             {!member ? 'New' : isExpired ? 'Expired' : 'Active'}
           </p>
-          <p className="text-[10px] text-text-secondary">Status</p>
+          <p className="text-[11px] text-text-secondary">Status</p>
         </Card>
       </div>
 

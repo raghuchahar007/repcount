@@ -1,6 +1,5 @@
 'use client'
 import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import type { Gym } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
@@ -32,18 +31,18 @@ export default function GymPublicClient({ gym, memberCount, avgRating, reviewCou
           <div className="flex justify-center gap-6 mt-4">
             <div className="text-center">
               <p className="text-xl font-bold text-text-primary">{memberCount}+</p>
-              <p className="text-[10px] text-text-secondary">Members</p>
+              <p className="text-[11px] text-text-secondary">Members</p>
             </div>
             {avgRating && (
               <div className="text-center">
                 <p className="text-xl font-bold text-status-yellow">⭐ {avgRating}</p>
-                <p className="text-[10px] text-text-secondary">{reviewCount} reviews</p>
+                <p className="text-[11px] text-text-secondary">{reviewCount} reviews</p>
               </div>
             )}
             {gym.opening_time && (
               <div className="text-center">
                 <p className="text-xl font-bold text-status-green">Open</p>
-                <p className="text-[10px] text-text-secondary">{gym.opening_time} - {gym.closing_time}</p>
+                <p className="text-[11px] text-text-secondary">{gym.opening_time} - {gym.closing_time}</p>
               </div>
             )}
           </div>
@@ -67,7 +66,7 @@ export default function GymPublicClient({ gym, memberCount, avgRating, reviewCou
               {Object.entries(gym.pricing).map(([plan, price]) => (
                 <div key={plan} className="bg-bg-primary rounded-xl p-3 text-center border border-border">
                   <p className="text-lg font-bold text-accent-orange">{formatCurrency(price as number)}</p>
-                  <p className="text-[10px] text-text-secondary capitalize">{plan.replace('_', ' ')}</p>
+                  <p className="text-[11px] text-text-secondary capitalize">{plan.replace('_', ' ')}</p>
                 </div>
               ))}
             </div>
@@ -135,21 +134,17 @@ export default function GymPublicClient({ gym, memberCount, avgRating, reviewCou
 
         {/* CTA */}
         <div className="space-y-2">
-          <Link href={`/gym/${gym.slug}/join`}>
-            <Button fullWidth size="lg">
-              Join {gym.name}
-            </Button>
+          <Link href={`/gym/${gym.slug}/join`} className="block w-full bg-gradient-to-r from-accent-orange to-accent-orange-dark text-white px-6 py-3 text-base rounded-xl font-semibold text-center active:scale-[0.97] transition-transform">
+            Join {gym.name}
           </Link>
           {gym.phone && (
-            <a href={`https://wa.me/91${gym.phone}?text=Hi! I found ${gym.name} on RepCount and would like to know more.`} target="_blank" rel="noopener">
-              <Button variant="outline" fullWidth>
-                💬 WhatsApp Enquiry
-              </Button>
+            <a href={`https://wa.me/91${gym.phone}?text=Hi! I found ${gym.name} on RepCount and would like to know more.`} target="_blank" rel="noopener" className="block w-full bg-bg-card border border-border text-text-primary px-6 py-3 text-base rounded-xl font-semibold text-center active:scale-[0.97] transition-transform">
+              💬 WhatsApp Enquiry
             </a>
           )}
         </div>
 
-        <p className="text-center text-text-muted text-[10px]">
+        <p className="text-center text-text-muted text-[11px]">
           Powered by RepCount
         </p>
       </div>

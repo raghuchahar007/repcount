@@ -72,6 +72,7 @@ export default function VerifyPage() {
   }
 
   const handleVerify = async (code?: string) => {
+    if (loading) return
     const otpCode = code || otp.join('')
     if (otpCode.length !== 6) {
       setError('Please enter the 6-digit OTP')
@@ -107,6 +108,10 @@ export default function VerifyPage() {
           })
         }
 
+        // Cache role in cookie
+        const role = profile?.role || 'member'
+        document.cookie = `repcount_role=${role}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+
         // Clean up session storage
         const redirect = sessionStorage.getItem('login_redirect')
         sessionStorage.removeItem('login_phone')
@@ -133,7 +138,11 @@ export default function VerifyPage() {
   const handleResend = async () => {
     try {
       const supabase = createClient()
-      await supabase.auth.signInWithOtp({ phone: `+91${phone}` })
+      const { error } = await supabase.auth.signInWithOtp({ phone: `+91${phone}` })
+      if (error) {
+        setError(error.message || 'Failed to resend OTP')
+        return
+      }
       setResendTimer(30)
       setError('')
     } catch {

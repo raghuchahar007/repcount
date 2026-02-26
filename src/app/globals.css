@@ -31,11 +31,19 @@
 }
 
 @layer base {
+  html {
+    touch-action: manipulation;
+  }
+
   body {
     background-color: var(--color-bg-primary);
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  button, a, [role="button"] {
+    cursor: pointer;
   }
 }
 

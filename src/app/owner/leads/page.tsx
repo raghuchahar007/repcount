@@ -11,6 +11,7 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [gymName, setGymName] = useState('')
 
   useEffect(() => { loadLeads() }, [])
@@ -34,7 +35,7 @@ export default function LeadsPage() {
 
       setLeads(data || [])
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -42,8 +43,12 @@ export default function LeadsPage() {
 
   async function updateLeadStatus(leadId: string, status: string) {
     const supabase = createClient()
-    await supabase.from('leads').update({ status }).eq('id', leadId)
+    const previousLeads = leads
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: status as Lead['status'] } : l))
+    const { error: updateError } = await supabase.from('leads').update({ status }).eq('id', leadId)
+    if (updateError) {
+      setLeads(previousLeads)
+    }
   }
 
   const filteredLeads = leads.filter(l => filter === 'all' || l.status === filter)
@@ -59,6 +64,15 @@ export default function LeadsPage() {
     { key: 'converted', label: 'Converted' },
   ]
 
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadLeads() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
+
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-lg font-bold text-text-primary">Leads</h2>
@@ -68,7 +82,7 @@ export default function LeadsPage() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${
+            className={`px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap min-h-[44px] flex items-center active:opacity-70 ${
               filter === f.key ? 'bg-accent-orange text-white' : 'bg-bg-card text-text-secondary border border-border'
             }`}
           >
@@ -94,12 +108,12 @@ export default function LeadsPage() {
               <div className="flex gap-2">
                 <a
                   href={generateWhatsAppLink(lead.phone, `Hi ${lead.name}! 🏋️ Welcome to ${gymName}. We'd love to have you as a member. Come visit us for a free trial!`)}
-                  target="_blank" rel="noopener" className="flex-1"
+                  target="_blank" rel="noopener" className="flex-1 bg-bg-card border border-border text-text-primary px-4 py-2.5 text-sm rounded-xl font-semibold text-center active:scale-[0.97] transition-transform"
                 >
-                  <Button variant="outline" size="sm" fullWidth>📱 WhatsApp</Button>
+                  📱 WhatsApp
                 </a>
-                <a href={`tel:+91${lead.phone}`} className="flex-1">
-                  <Button variant="outline" size="sm" fullWidth>📞 Call</Button>
+                <a href={`tel:+91${lead.phone}`} className="flex-1 bg-bg-card border border-border text-text-primary px-4 py-2.5 text-sm rounded-xl font-semibold text-center active:scale-[0.97] transition-transform">
+                  📞 Call
                 </a>
                 {lead.status === 'new' && (
                   <Button variant="secondary" size="sm" onClick={() => updateLeadStatus(lead.id, 'contacted')}>

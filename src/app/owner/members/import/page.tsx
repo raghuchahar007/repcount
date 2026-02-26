@@ -79,22 +79,21 @@ export default function ImportMembersPage() {
         .from('gyms').select('id').eq('owner_id', user.id).single()
       if (!gym) throw new Error('No gym found')
 
-      let added = 0
-      let skipped = 0
+      const membersToInsert = toImport.map(member => ({
+        gym_id: gym.id,
+        name: member.name.trim(),
+        phone: member.phone.replace(/\D/g, ''),
+      }))
 
-      for (const member of toImport) {
-        const cleanPhone = member.phone.replace(/\D/g, '')
-        const { error } = await supabase.from('members').insert({
-          gym_id: gym.id,
-          name: member.name.trim(),
-          phone: cleanPhone,
-        })
-        if (error) {
-          skipped++
-        } else {
-          added++
-        }
-      }
+      const { data: inserted, error: batchError } = await supabase
+        .from('members')
+        .upsert(membersToInsert, { onConflict: 'phone,gym_id', ignoreDuplicates: true })
+        .select()
+
+      if (batchError) throw new Error(batchError.message)
+
+      const added = inserted?.length || 0
+      const skipped = toImport.length - added
 
       setImportResult({ added, skipped })
     } catch (err: any) {
@@ -106,7 +105,7 @@ export default function ImportMembersPage() {
 
   return (
     <div className="p-4 space-y-4">
-      <button onClick={() => router.back()} className="text-text-secondary text-sm">← Back</button>
+      <button onClick={() => router.back()} className="text-text-secondary text-sm min-h-[44px] inline-flex items-center">← Back</button>
       <h2 className="text-lg font-bold text-text-primary">Import from Register</h2>
       <p className="text-xs text-text-secondary">
         Take a photo of your member register — we'll extract names and phone numbers automatically.
@@ -126,7 +125,7 @@ export default function ImportMembersPage() {
                 <p className="text-text-secondary text-sm mt-2">
                   Tap to take photo or upload image
                 </p>
-                <p className="text-text-muted text-[10px] mt-1">
+                <p className="text-text-muted text-[11px] mt-1">
                   Supports JPG, PNG up to 10MB
                 </p>
               </>

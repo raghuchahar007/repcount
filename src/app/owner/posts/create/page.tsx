@@ -37,7 +37,7 @@ export default function CreatePostPage() {
         .from('gyms').select('id').eq('owner_id', user.id).single()
       if (!gym) throw new Error('No gym found')
 
-      await supabase.from('gym_posts').insert({
+      const { error: insertError } = await supabase.from('gym_posts').insert({
         gym_id: gym.id,
         author_id: user.id,
         title: form.title.trim(),
@@ -47,6 +47,8 @@ export default function CreatePostPage() {
         ends_at: form.ends_at || null,
         is_published: true,
       })
+
+      if (insertError) throw new Error(insertError.message || 'Failed to create post')
 
       router.push('/owner/posts')
     } catch (err: any) {
@@ -58,7 +60,7 @@ export default function CreatePostPage() {
 
   return (
     <div className="p-4">
-      <button onClick={() => router.back()} className="text-text-secondary text-sm mb-4">← Back</button>
+      <button onClick={() => router.back()} className="text-text-secondary text-sm mb-4 min-h-[44px] inline-flex items-center">← Back</button>
       <h2 className="text-lg font-bold text-text-primary mb-4">Create Post</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">

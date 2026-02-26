@@ -27,6 +27,7 @@ export default function MemberDetailPage() {
   const [gymName, setGymName] = useState('')
   const [gymUpi, setGymUpi] = useState('')
   const [saving, setSaving] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function MemberDetailPage() {
       setMemberships(membershipsRes.data || [])
       setRecentAttendance(attendanceRes.data || [])
     } catch {
-      // silently handle - page shows empty/fallback state
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -106,6 +107,15 @@ export default function MemberDetailPage() {
     return <div className="p-4 space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />)}</div>
   }
 
+  if (loadError) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setLoadError(false); setLoading(true); loadMember() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
+
   if (!member) {
     return <div className="p-4 text-center text-text-muted">Member not found</div>
   }
@@ -118,7 +128,7 @@ export default function MemberDetailPage() {
   return (
     <div className="p-4 space-y-4">
       {/* Back button */}
-      <button onClick={() => router.back()} className="text-text-secondary text-sm flex items-center gap-1">
+      <button onClick={() => router.back()} className="text-text-secondary text-sm min-h-[44px] inline-flex items-center gap-1">
         ← Back
       </button>
 
@@ -165,10 +175,9 @@ export default function MemberDetailPage() {
             )}
             target="_blank"
             rel="noopener"
+            className="flex-1 bg-bg-card border border-border text-text-primary px-4 py-2.5 text-sm rounded-xl font-semibold text-center active:scale-[0.97] transition-transform"
           >
-            <Button variant="outline" size="sm" fullWidth>
-              📱 WhatsApp Reminder
-            </Button>
+            📱 WhatsApp Reminder
           </a>
         )}
         {isExpiringSoon && latestMembership && (
@@ -184,17 +193,14 @@ export default function MemberDetailPage() {
             )}
             target="_blank"
             rel="noopener"
+            className="flex-1 bg-bg-card border border-border text-text-primary px-4 py-2.5 text-sm rounded-xl font-semibold text-center active:scale-[0.97] transition-transform"
           >
-            <Button variant="outline" size="sm" fullWidth>
-              📱 Renewal Reminder
-            </Button>
+            📱 Renewal Reminder
           </a>
         )}
         {!isOverdue && !isExpiringSoon && (
-          <a href={`tel:+91${member.phone}`}>
-            <Button variant="outline" size="sm" fullWidth>
-              📞 Call
-            </Button>
+          <a href={`tel:+91${member.phone}`} className="flex-1 bg-bg-card border border-border text-text-primary px-4 py-2.5 text-sm rounded-xl font-semibold text-center active:scale-[0.97] transition-transform">
+            📞 Call
           </a>
         )}
       </div>
@@ -210,7 +216,7 @@ export default function MemberDetailPage() {
                 <button
                   key={p.value}
                   onClick={() => setPaymentForm(prev => ({ ...prev, plan_type: p.value }))}
-                  className={`py-2 rounded-lg text-xs font-medium transition-colors ${
+                  className={`py-2 rounded-lg text-xs font-medium transition-colors min-h-[44px] ${
                     paymentForm.plan_type === p.value
                       ? 'bg-accent-orange text-white'
                       : 'bg-bg-hover text-text-secondary border border-border'
@@ -233,7 +239,7 @@ export default function MemberDetailPage() {
               <button
                 key={m}
                 onClick={() => setPaymentForm(prev => ({ ...prev, payment_method: m }))}
-                className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize ${
+                className={`flex-1 py-2 rounded-lg text-xs font-medium capitalize min-h-[44px] ${
                   paymentForm.payment_method === m
                     ? 'bg-accent-orange text-white'
                     : 'bg-bg-hover text-text-secondary border border-border'
@@ -257,19 +263,19 @@ export default function MemberDetailPage() {
           <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">Current Plan</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-[10px] text-text-muted">Plan</p>
+              <p className="text-[11px] text-text-muted">Plan</p>
               <p className="text-sm text-text-primary capitalize">{latestMembership.plan_type.replace('_', ' ')}</p>
             </div>
             <div>
-              <p className="text-[10px] text-text-muted">Amount</p>
+              <p className="text-[11px] text-text-muted">Amount</p>
               <p className="text-sm text-text-primary">{formatCurrency(latestMembership.amount)}</p>
             </div>
             <div>
-              <p className="text-[10px] text-text-muted">Start</p>
+              <p className="text-[11px] text-text-muted">Start</p>
               <p className="text-sm text-text-primary">{new Date(latestMembership.start_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
             </div>
             <div>
-              <p className="text-[10px] text-text-muted">Expiry</p>
+              <p className="text-[11px] text-text-muted">Expiry</p>
               <p className={`text-sm font-medium ${isOverdue ? 'text-status-red' : 'text-text-primary'}`}>
                 {new Date(latestMembership.expiry_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </p>
@@ -286,7 +292,7 @@ export default function MemberDetailPage() {
             <Card key={ms.id} className="p-3 flex items-center justify-between">
               <div>
                 <p className="text-sm text-text-primary">{formatCurrency(ms.amount)}</p>
-                <p className="text-[10px] text-text-muted capitalize">{ms.plan_type.replace('_', ' ')} · {ms.payment_method}</p>
+                <p className="text-[11px] text-text-muted capitalize">{ms.plan_type.replace('_', ' ')} · {ms.payment_method}</p>
               </div>
               <p className="text-xs text-text-secondary">
                 {new Date(ms.paid_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}

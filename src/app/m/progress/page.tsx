@@ -20,6 +20,8 @@ export default function ProgressPage() {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [form, setForm] = useState({ weight: '', chest: '', waist: '', biceps: '' })
 
   useEffect(() => { loadProgress() }, [])
@@ -44,7 +46,7 @@ export default function ProgressPage() {
 
       setMetrics(data || [])
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -55,10 +57,11 @@ export default function ProgressPage() {
     if (!form.weight && !form.chest && !form.waist && !form.biceps) return
 
     setSaving(true)
+    setSaveError('')
     const supabase = createClient()
     const today = todayIST()
 
-    await supabase.from('progress_metrics').upsert({
+    const { error: upsertError } = await supabase.from('progress_metrics').upsert({
       member_id: memberId,
       date: today,
       weight: form.weight ? Number(form.weight) : null,
@@ -66,6 +69,12 @@ export default function ProgressPage() {
       waist: form.waist ? Number(form.waist) : null,
       biceps: form.biceps ? Number(form.biceps) : null,
     }, { onConflict: 'member_id,date' })
+
+    if (upsertError) {
+      setSaveError('Failed to save. Please try again.')
+      setSaving(false)
+      return
+    }
 
     setForm({ weight: '', chest: '', waist: '', biceps: '' })
     setShowForm(false)
@@ -80,6 +89,15 @@ export default function ProgressPage() {
     : null
 
   if (loading) return <div className="p-4 space-y-4">{[1, 2].map(i => <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />)}</div>
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadProgress() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   return (
     <div className="p-4 space-y-4">
@@ -100,6 +118,7 @@ export default function ProgressPage() {
             <Input label="Waist (cm)" type="number" placeholder="80" value={form.waist} onChange={e => setForm(p => ({ ...p, waist: e.target.value }))} />
             <Input label="Biceps (cm)" type="number" placeholder="32" value={form.biceps} onChange={e => setForm(p => ({ ...p, biceps: e.target.value }))} />
           </div>
+          {saveError && <p className="text-status-red text-xs text-center">{saveError}</p>}
           <Button onClick={handleSave} loading={saving} fullWidth>Save</Button>
         </Card>
       )}
@@ -110,7 +129,7 @@ export default function ProgressPage() {
           {latest.weight && (
             <Card className="p-3 text-center">
               <p className="text-xl font-bold text-text-primary">{latest.weight} kg</p>
-              <p className="text-[10px] text-text-secondary">Current Weight</p>
+              <p className="text-[11px] text-text-secondary">Current Weight</p>
               {weightChange && (
                 <p className={`text-xs font-medium mt-1 ${Number(weightChange) < 0 ? 'text-status-green' : Number(weightChange) > 0 ? 'text-status-yellow' : 'text-text-muted'}`}>
                   {Number(weightChange) > 0 ? '+' : ''}{weightChange} kg
@@ -121,19 +140,19 @@ export default function ProgressPage() {
           {latest.chest && (
             <Card className="p-3 text-center">
               <p className="text-xl font-bold text-text-primary">{latest.chest} cm</p>
-              <p className="text-[10px] text-text-secondary">Chest</p>
+              <p className="text-[11px] text-text-secondary">Chest</p>
             </Card>
           )}
           {latest.waist && (
             <Card className="p-3 text-center">
               <p className="text-xl font-bold text-text-primary">{latest.waist} cm</p>
-              <p className="text-[10px] text-text-secondary">Waist</p>
+              <p className="text-[11px] text-text-secondary">Waist</p>
             </Card>
           )}
           {latest.biceps && (
             <Card className="p-3 text-center">
               <p className="text-xl font-bold text-text-primary">{latest.biceps} cm</p>
-              <p className="text-[10px] text-text-secondary">Biceps</p>
+              <p className="text-[11px] text-text-secondary">Biceps</p>
             </Card>
           )}
         </div>
@@ -146,12 +165,12 @@ export default function ProgressPage() {
           <Card className="p-8 text-center">
             <span className="text-3xl">📊</span>
             <p className="text-text-muted text-sm mt-2">No measurements yet</p>
-            <p className="text-text-muted text-[10px] mt-1">Start tracking to see your progress</p>
+            <p className="text-text-muted text-[11px] mt-1">Start tracking to see your progress</p>
           </Card>
         ) : (
           <div className="space-y-2">
             {/* Table header */}
-            <div className="grid grid-cols-5 gap-1 px-3 py-2 text-[10px] text-text-muted">
+            <div className="grid grid-cols-5 gap-1 px-3 py-2 text-[11px] text-text-muted">
               <span>Date</span>
               <span className="text-center">Weight</span>
               <span className="text-center">Chest</span>

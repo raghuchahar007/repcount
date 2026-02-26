@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
 import { todayIST } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -24,6 +23,7 @@ function MembersContent() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -47,10 +47,11 @@ function MembersContent() {
         .select('*, memberships(expiry_date, amount, status)')
         .eq('gym_id', gym.id)
         .order('created_at', { ascending: false })
+        .limit(200)
 
       setMembers(data || [])
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -108,14 +109,21 @@ function MembersContent() {
     { key: 'active', label: 'Active' },
   ]
 
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadMembers() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
+
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-text-primary">Members ({members.length})</h2>
-        <Link href="/owner/members/add">
-          <Button size="sm">+ Add</Button>
-        </Link>
+        <Link href="/owner/members/add" className="bg-gradient-to-r from-accent-orange to-accent-orange-dark text-white px-3 py-1.5 text-xs rounded-xl font-semibold active:scale-[0.97] transition-transform">+ Add</Link>
       </div>
 
       {/* Search */}
@@ -131,7 +139,7 @@ function MembersContent() {
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+            className={`px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors min-h-[44px] flex items-center active:opacity-70 ${
               filter === f.key
                 ? 'bg-accent-orange text-white'
                 : 'bg-bg-card text-text-secondary border border-border'
@@ -155,14 +163,14 @@ function MembersContent() {
             const status = getStatus(member)
             return (
               <Link key={member.id} href={`/owner/members/${member.id}`}>
-                <Card className="p-3 flex items-center justify-between">
+                <Card className="p-3 flex items-center justify-between active:scale-[0.98] transition-transform">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-bg-hover flex items-center justify-center text-sm font-bold text-accent-orange">
                       {member.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-text-primary">{member.name}</p>
-                      <p className="text-[10px] text-text-muted">{member.phone}</p>
+                      <p className="text-[11px] text-text-muted">{member.phone}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -170,7 +178,7 @@ function MembersContent() {
                     {member.memberships?.[0] && (() => {
                       const days = getDaysText(member.memberships[0].expiry_date)
                       return (
-                        <p className={`text-[10px] mt-1 ${days.className}`}>
+                        <p className={`text-[11px] mt-1 ${days.className}`}>
                           {days.text}
                         </p>
                       )

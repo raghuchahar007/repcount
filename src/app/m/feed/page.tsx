@@ -14,6 +14,8 @@ export default function FeedPage() {
   const [joinedChallenges, setJoinedChallenges] = useState<Set<string>>(new Set())
   const [memberId, setMemberId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
 
   useEffect(() => { loadFeed() }, [])
 
@@ -36,7 +38,7 @@ export default function FeedPage() {
       setPosts(postsRes.data || [])
       setJoinedChallenges(new Set((participantsRes.data || []).map(p => p.post_id)))
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -45,11 +47,25 @@ export default function FeedPage() {
   async function joinChallenge(postId: string) {
     if (!memberId) return
     const supabase = createClient()
-    await supabase.from('challenge_participants').insert({ post_id: postId, member_id: memberId })
+    const { error: insertError } = await supabase.from('challenge_participants').insert({ post_id: postId, member_id: memberId })
+    if (insertError) {
+      setJoinError(postId)
+      setTimeout(() => setJoinError(null), 3000)
+      return
+    }
     setJoinedChallenges(prev => new Set([...prev, postId]))
   }
 
   if (loading) return <div className="p-4 space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />)}</div>
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadFeed() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   return (
     <div className="p-4 space-y-4">
@@ -74,10 +90,10 @@ export default function FeedPage() {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[10px] text-text-muted uppercase tracking-wider">{post.post_type}</span>
+                        <span className="text-[11px] text-text-muted uppercase tracking-wider">{post.post_type}</span>
                         <h3 className="text-sm font-semibold text-text-primary">{post.title}</h3>
                       </div>
-                      <span className="text-[10px] text-text-muted">
+                      <span className="text-[11px] text-text-muted">
                         {new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                       </span>
                     </div>
@@ -85,7 +101,7 @@ export default function FeedPage() {
                     {post.body && <p className="text-xs text-text-secondary mt-1">{post.body}</p>}
 
                     {post.starts_at && (
-                      <p className="text-[10px] text-text-muted mt-2">
+                      <p className="text-[11px] text-text-muted mt-2">
                         📅 {new Date(post.starts_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                         {post.ends_at && ` — ${new Date(post.ends_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`}
                       </p>
@@ -96,9 +112,14 @@ export default function FeedPage() {
                         {hasJoined ? (
                           <span className="text-xs text-status-green font-medium">✅ You've joined!</span>
                         ) : (
-                          <Button size="sm" onClick={() => joinChallenge(post.id)}>
-                            Join Challenge
-                          </Button>
+                          <>
+                            <Button size="sm" onClick={() => joinChallenge(post.id)}>
+                              Join Challenge
+                            </Button>
+                            {joinError === post.id && (
+                              <p className="text-xs text-status-red mt-1">Failed to join. Try again.</p>
+                            )}
+                          </>
                         )}
                       </div>
                     )}

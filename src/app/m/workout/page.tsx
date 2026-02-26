@@ -143,6 +143,7 @@ export default function WorkoutPage() {
   const [workout, setWorkout] = useState<{ name: string; days: WorkoutDay[] } | null>(null)
   const [selectedDay, setSelectedDay] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => { loadWorkout() }, [])
 
@@ -168,13 +169,23 @@ export default function WorkoutPage() {
         setWorkout(WORKOUT_TEMPLATES[key] || WORKOUT_TEMPLATES['general-beginner'])
       }
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
   }
 
   if (loading) return <div className="p-4 space-y-4">{[1, 2].map(i => <div key={i} className="h-32 bg-bg-card rounded-2xl animate-pulse" />)}</div>
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadWorkout() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
+
   if (!workout) return (
     <div className="p-4 text-center min-h-[60vh] flex flex-col items-center justify-center">
       <span className="text-5xl mb-4">💪</span>
@@ -197,7 +208,7 @@ export default function WorkoutPage() {
           <button
             key={i}
             onClick={() => setSelectedDay(i)}
-            className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap flex-shrink-0 transition-colors ${
+            className={`px-3 py-2.5 rounded-lg text-xs font-medium whitespace-nowrap flex-shrink-0 transition-colors min-h-[44px] flex items-center active:opacity-70 ${
               selectedDay === i
                 ? 'bg-accent-orange text-white'
                 : 'bg-bg-card text-text-secondary border border-border'
@@ -214,7 +225,7 @@ export default function WorkoutPage() {
           <span className="text-lg">{day.exercises.length > 0 ? '💪' : '😴'}</span>
           <div>
             <p className="text-sm font-semibold text-text-primary">{day.focus}</p>
-            <p className="text-[10px] text-text-muted">
+            <p className="text-[11px] text-text-muted">
               {day.exercises.length > 0 ? `${day.exercises.length} exercises` : 'Recovery and rest'}
             </p>
           </div>
@@ -225,14 +236,14 @@ export default function WorkoutPage() {
             {day.exercises.map((ex, i) => (
               <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-bg-hover flex items-center justify-center text-[10px] font-bold text-accent-orange">
+                  <span className="w-6 h-6 rounded-full bg-bg-hover flex items-center justify-center text-[11px] font-bold text-accent-orange">
                     {i + 1}
                   </span>
                   <p className="text-sm text-text-primary">{ex.name}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-text-secondary">{ex.sets} × {ex.reps}</p>
-                  <p className="text-[10px] text-text-muted">Rest: {ex.rest}</p>
+                  <p className="text-[11px] text-text-muted">Rest: {ex.rest}</p>
                 </div>
               </div>
             ))}

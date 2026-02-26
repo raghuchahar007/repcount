@@ -12,6 +12,7 @@ export default function ReferPage() {
   const [referralCount, setReferralCount] = useState(0)
   const [referrals, setReferrals] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => { loadReferralData() }, [])
@@ -40,7 +41,7 @@ export default function ReferPage() {
       setReferrals(leads || [])
       setReferralCount(leads?.length || 0)
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -67,6 +68,15 @@ export default function ReferPage() {
   }
 
   if (loading) return <div className="p-4 space-y-4">{[1, 2].map(i => <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />)}</div>
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadReferralData() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   return (
     <div className="p-4 space-y-4">
@@ -123,7 +133,7 @@ export default function ReferPage() {
               <Card key={r.id} className="p-3 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-text-primary">{r.name}</p>
-                  <p className="text-[10px] text-text-muted">{new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
+                  <p className="text-[11px] text-text-muted">{new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
                 </div>
                 <Badge color={r.status === 'converted' ? 'green' : r.status === 'contacted' ? 'yellow' : 'blue'}>
                   {r.status}

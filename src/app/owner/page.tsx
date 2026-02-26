@@ -26,6 +26,7 @@ export default function OwnerDashboard() {
   const [recentMembers, setRecentMembers] = useState<any[]>([])
   const [gymId, setGymId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     loadDashboard()
@@ -64,7 +65,8 @@ export default function OwnerDashboard() {
         revenueRes,
         attendanceRes,
         recentRes,
-        inactiveRes,
+        activeMembersRes,
+        recentCheckInsRes,
       ] = await Promise.all([
         // Total members
         supabase.from('members').select('id', { count: 'exact' }).eq('gym_id', gym.id).eq('is_active', true),
@@ -86,21 +88,26 @@ export default function OwnerDashboard() {
           .eq('is_active', true)
           .order('created_at', { ascending: false })
           .limit(5),
-        // Inactive members (no check-in in 2+ weeks)
-        supabase.from('members').select('id, attendance(checked_in_at)').eq('gym_id', gym.id).eq('is_active', true).lt('attendance.checked_in_at', twoWeeksAgo),
+        // Active member IDs (for inactive computation)
+        supabase.from('members').select('id').eq('gym_id', gym.id).eq('is_active', true),
+        // Recent check-in member IDs (last 2 weeks)
+        supabase.from('attendance').select('member_id').eq('gym_id', gym.id).gte('checked_in_at', twoWeeksAgo).limit(5000),
       ])
 
       const monthlyRevenue = revenueRes.data?.reduce((sum, m) => sum + Number(m.amount), 0) || 0
+
+      // Compute inactive: active members who haven't checked in for 2+ weeks
+      const activeMembers = activeMembersRes.data || []
+      const recentCheckins = recentCheckInsRes.data || []
+      const recentSet = new Set(recentCheckins.map((r: any) => r.member_id))
+      const inactiveCount = activeMembers.filter((m: any) => !recentSet.has(m.id)).length
 
       setStats({
         totalMembers: membersRes.count || 0,
         activeMembers: membersRes.count || 0,
         overdueCount: overdueRes.count || 0,
         expiringCount: expiringRes.count || 0,
-        inactiveCount: inactiveRes.data?.filter(m => {
-          const lastCheckin = m.attendance?.[0]?.checked_in_at
-          return !lastCheckin || lastCheckin < twoWeeksAgo
-        }).length || 0,
+        inactiveCount,
         newLeadsCount: leadsRes.count || 0,
         monthRevenue: monthlyRevenue,
         todayAttendance: attendanceRes.count || 0,
@@ -108,7 +115,7 @@ export default function OwnerDashboard() {
 
       setRecentMembers(recentRes.data || [])
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -123,6 +130,15 @@ export default function OwnerDashboard() {
       </div>
     )
   }
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadDashboard() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   if (!gymId) {
     return (
@@ -157,11 +173,11 @@ export default function OwnerDashboard() {
         <div className="flex gap-3 mt-4">
           <div className="flex-1 bg-bg-primary/50 rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-text-primary">{stats.totalMembers}</p>
-            <p className="text-[10px] text-text-secondary">Total Members</p>
+            <p className="text-[11px] text-text-secondary">Total Members</p>
           </div>
           <div className="flex-1 bg-bg-primary/50 rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-text-primary">{stats.activeMembers}</p>
-            <p className="text-[10px] text-text-secondary">Active</p>
+            <p className="text-[11px] text-text-secondary">Active</p>
           </div>
         </div>
       </Card>
@@ -170,7 +186,7 @@ export default function OwnerDashboard() {
       <div className="grid grid-cols-2 gap-3">
         {stats.overdueCount > 0 && (
           <Link href="/owner/members?filter=overdue">
-            <Card variant="alert-danger" className="p-4">
+            <Card variant="alert-danger" className="p-4 active:scale-[0.98] transition-transform">
               <p className="text-2xl font-bold text-status-red">{stats.overdueCount}</p>
               <p className="text-xs text-text-secondary mt-1">Overdue</p>
             </Card>
@@ -178,7 +194,7 @@ export default function OwnerDashboard() {
         )}
         {stats.expiringCount > 0 && (
           <Link href="/owner/members?filter=expiring">
-            <Card variant="alert-warning" className="p-4">
+            <Card variant="alert-warning" className="p-4 active:scale-[0.98] transition-transform">
               <p className="text-2xl font-bold text-status-yellow">{stats.expiringCount}</p>
               <p className="text-xs text-text-secondary mt-1">Expiring Soon</p>
             </Card>
@@ -186,14 +202,14 @@ export default function OwnerDashboard() {
         )}
         {stats.newLeadsCount > 0 && (
           <Link href="/owner/leads">
-            <Card variant="alert-info" className="p-4">
+            <Card variant="alert-info" className="p-4 active:scale-[0.98] transition-transform">
               <p className="text-2xl font-bold text-status-blue">{stats.newLeadsCount}</p>
               <p className="text-xs text-text-secondary mt-1">New Leads</p>
             </Card>
           </Link>
         )}
         <Link href="/owner/members?filter=inactive">
-          <Card className="p-4">
+          <Card className="p-4 active:scale-[0.98] transition-transform">
             <p className="text-2xl font-bold text-status-purple">{stats.inactiveCount}</p>
             <p className="text-xs text-text-secondary mt-1">Inactive (2wk+)</p>
           </Card>
@@ -204,19 +220,19 @@ export default function OwnerDashboard() {
       <div className="grid grid-cols-4 gap-2">
         <Link href="/owner/members/add" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">➕</span>
-          <p className="text-[10px] text-text-secondary mt-1">Add Member</p>
+          <p className="text-[11px] text-text-secondary mt-1">Add Member</p>
         </Link>
         <Link href="/owner/renewals" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">🔄</span>
-          <p className="text-[10px] text-text-secondary mt-1">Renewals</p>
+          <p className="text-[11px] text-text-secondary mt-1">Renewals</p>
         </Link>
         <Link href="/owner/members/import" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">📷</span>
-          <p className="text-[10px] text-text-secondary mt-1">Import</p>
+          <p className="text-[11px] text-text-secondary mt-1">Import</p>
         </Link>
         <Link href="/owner/posts/create" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">📝</span>
-          <p className="text-[10px] text-text-secondary mt-1">New Post</p>
+          <p className="text-[11px] text-text-secondary mt-1">New Post</p>
         </Link>
       </div>
 
@@ -232,14 +248,14 @@ export default function OwnerDashboard() {
             const isOverdue = latestMembership && new Date(latestMembership.expiry_date) < new Date()
             return (
               <Link key={member.id} href={`/owner/members/${member.id}`}>
-                <Card className="p-3 flex items-center justify-between">
+                <Card className="p-3 flex items-center justify-between active:scale-[0.98] transition-transform">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-bg-hover flex items-center justify-center text-sm font-bold text-accent-orange">
                       {member.name.charAt(0)}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-text-primary">{member.name}</p>
-                      <p className="text-[10px] text-text-muted">{member.phone}</p>
+                      <p className="text-[11px] text-text-muted">{member.phone}</p>
                     </div>
                   </div>
                   {latestMembership && (

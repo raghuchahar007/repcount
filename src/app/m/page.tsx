@@ -125,7 +125,7 @@ function JoinGymEmptyState() {
 
     const phone = profile?.phone || user.phone?.replace('+91', '') || ''
 
-    await supabase.from('leads').insert({
+    const { error: insertError } = await supabase.from('leads').insert({
       gym_id: gymInfo.id,
       name: profile?.full_name || phone,
       phone: phone,
@@ -134,6 +134,13 @@ function JoinGymEmptyState() {
       status: 'new',
       notes: 'Joined via gym code on home page',
     })
+
+    if (insertError) {
+      setErrorMsg('Failed to submit request. Please try again.')
+      setStep('error')
+      setSubmitting(false)
+      return
+    }
 
     localStorage.setItem('repcount_pending_join', gymInfo.name)
     setStep('success')
@@ -214,6 +221,7 @@ function JoinGymEmptyState() {
 export default function MemberHome() {
   const [data, setData] = useState<MemberDashboard | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => { loadDashboard() }, [])
 
@@ -237,7 +245,7 @@ export default function MemberHome() {
 
       const [membershipRes, attendanceRes, todayRes, badgesRes] = await Promise.all([
         supabase.from('memberships').select('expiry_date').eq('member_id', member.id).order('expiry_date', { ascending: false }).limit(1),
-        supabase.from('attendance').select('checked_in_at').eq('member_id', member.id).order('checked_in_at', { ascending: false }),
+        supabase.from('attendance').select('checked_in_at').eq('member_id', member.id).order('checked_in_at', { ascending: false }).limit(60),
         supabase.from('attendance').select('id').eq('member_id', member.id).gte('checked_in_at', `${today}T00:00:00`).limit(1),
         supabase.from('badges').select('badge_type, earned_at').eq('member_id', member.id).order('earned_at', { ascending: false }).limit(5),
       ])
@@ -275,7 +283,7 @@ export default function MemberHome() {
       // Member exists, clear any pending join request from localStorage
       localStorage.removeItem('repcount_pending_join')
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -284,6 +292,15 @@ export default function MemberHome() {
   if (loading) {
     return <div className="p-4 space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />)}</div>
   }
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadDashboard() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   if (!data) {
     return <JoinGymEmptyState />
@@ -298,18 +315,18 @@ export default function MemberHome() {
         <div className="flex items-center gap-6 mt-4">
           <div className="text-center">
             <p className="text-3xl font-bold text-accent-orange">{data.streak}</p>
-            <p className="text-[10px] text-text-secondary">Day Streak 🔥</p>
+            <p className="text-[11px] text-text-secondary">Day Streak 🔥</p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold text-text-primary">{data.totalCheckIns}</p>
-            <p className="text-[10px] text-text-secondary">Total Visits</p>
+            <p className="text-[11px] text-text-secondary">Total Visits</p>
           </div>
           {data.daysLeft !== null && (
             <div className="text-center">
               <p className={`text-3xl font-bold ${data.daysLeft < 0 ? 'text-status-red' : data.daysLeft <= 7 ? 'text-status-yellow' : 'text-status-green'}`}>
                 {data.daysLeft < 0 ? 0 : data.daysLeft}
               </p>
-              <p className="text-[10px] text-text-secondary">Days Left</p>
+              <p className="text-[11px] text-text-secondary">Days Left</p>
             </div>
           )}
         </div>
@@ -322,18 +339,18 @@ export default function MemberHome() {
             <span className="text-2xl">✅</span>
             <div>
               <p className="text-sm font-medium text-status-green">Checked in today!</p>
-              <p className="text-[10px] text-text-muted">Keep the streak going</p>
+              <p className="text-[11px] text-text-muted">Keep the streak going</p>
             </div>
           </div>
         </Card>
       ) : (
         <Link href="/m/attendance">
-          <Card className="p-4 border-accent-orange/30 bg-accent-orange/5">
+          <Card className="p-4 border-accent-orange/30 bg-accent-orange/5 active:scale-[0.98] transition-transform">
             <div className="flex items-center gap-3">
               <span className="text-2xl">📸</span>
               <div>
                 <p className="text-sm font-medium text-accent-orange">Mark your attendance</p>
-                <p className="text-[10px] text-text-muted">Tap to check in at your gym</p>
+                <p className="text-[11px] text-text-muted">Tap to check in at your gym</p>
               </div>
             </div>
           </Card>
@@ -346,7 +363,7 @@ export default function MemberHome() {
           <p className="text-sm font-medium">
             {data.daysLeft < 0 ? '⚠️ Your membership has expired' : `⏳ Membership expires in ${data.daysLeft} days`}
           </p>
-          <p className="text-[10px] text-text-secondary mt-1">Contact your gym to renew</p>
+          <p className="text-[11px] text-text-secondary mt-1">Contact your gym to renew</p>
         </Card>
       )}
 
@@ -356,18 +373,18 @@ export default function MemberHome() {
         const isRest = tw.exercises === 0
         return (
           <Link href="/m/workout">
-            <Card className="p-4">
+            <Card className="p-4 active:scale-[0.98] transition-transform">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{isRest ? '😴' : '🏋️'}</span>
                   <div>
-                    <p className="text-[10px] text-text-muted uppercase tracking-wide">{tw.dayName}</p>
+                    <p className="text-[11px] text-text-muted uppercase tracking-wide">{tw.dayName}</p>
                     {isRest ? (
                       <p className="text-sm font-medium text-text-secondary">Rest Day — recover and hydrate</p>
                     ) : (
                       <>
                         <p className="text-sm font-semibold text-text-primary">{tw.focus}</p>
-                        <p className="text-[10px] text-text-muted">{tw.exercises} exercises</p>
+                        <p className="text-[11px] text-text-muted">{tw.exercises} exercises</p>
                       </>
                     )}
                   </div>
@@ -395,9 +412,9 @@ export default function MemberHome() {
           { href: '/m/attendance', icon: '📅', label: 'Attendance' },
           { href: '/m/profile', icon: '👤', label: 'Profile' },
         ].map(item => (
-          <Link key={item.href} href={item.href} className="bg-bg-card border border-border rounded-xl p-3 text-center">
+          <Link key={item.href} href={item.href} className="bg-bg-card border border-border rounded-xl p-3 text-center active:scale-[0.98] transition-transform">
             <span className="text-lg">{item.icon}</span>
-            <p className="text-[10px] text-text-secondary mt-1">{item.label}</p>
+            <p className="text-[11px] text-text-secondary mt-1">{item.label}</p>
           </Link>
         ))}
       </div>
@@ -410,7 +427,7 @@ export default function MemberHome() {
             {data.recentBadges.map(b => (
               <div key={b.badge_type} className="bg-bg-card border border-border rounded-xl px-4 py-3 text-center flex-shrink-0">
                 <span className="text-2xl">{BADGE_EMOJI[b.badge_type] || '🏅'}</span>
-                <p className="text-[10px] text-text-secondary mt-1 capitalize">{b.badge_type.replace(/_/g, ' ')}</p>
+                <p className="text-[11px] text-text-secondary mt-1 capitalize">{b.badge_type.replace(/_/g, ' ')}</p>
               </div>
             ))}
           </div>

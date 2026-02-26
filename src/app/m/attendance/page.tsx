@@ -9,6 +9,7 @@ export default function AttendancePage() {
   const [checkedIn, setCheckedIn] = useState(false)
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [error, setError] = useState('')
   const [monthData, setMonthData] = useState<string[]>([])
   const [streak, setStreak] = useState(0)
@@ -54,7 +55,7 @@ export default function AttendancePage() {
       }
       setStreak(s)
     } catch {
-      // silently handle - page shows empty/fallback state
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -108,6 +109,15 @@ export default function AttendancePage() {
     return <div className="p-4 space-y-4">{[1, 2].map(i => <div key={i} className="h-32 bg-bg-card rounded-2xl animate-pulse" />)}</div>
   }
 
+  if (loadError) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setLoadError(false); setLoading(true); loadAttendance() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
+
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-lg font-bold text-text-primary">Attendance</h2>
@@ -116,15 +126,15 @@ export default function AttendancePage() {
       <div className="grid grid-cols-3 gap-3">
         <Card className="p-3 text-center">
           <p className="text-2xl font-bold text-accent-orange">{streak}</p>
-          <p className="text-[10px] text-text-secondary">Streak 🔥</p>
+          <p className="text-[11px] text-text-secondary">Streak 🔥</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-2xl font-bold text-text-primary">{monthData.length}</p>
-          <p className="text-[10px] text-text-secondary">This Month</p>
+          <p className="text-[11px] text-text-secondary">This Month</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-2xl font-bold text-status-green">{Math.round((monthData.length / now.getDate()) * 100)}%</p>
-          <p className="text-[10px] text-text-secondary">Consistency</p>
+          <p className="text-[11px] text-text-secondary">Consistency</p>
         </Card>
       </div>
 
@@ -150,7 +160,7 @@ export default function AttendancePage() {
         <p className="text-sm font-semibold text-text-primary mb-3">{monthName}</p>
         <div className="grid grid-cols-7 gap-1 text-center">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <span key={i} className="text-[10px] text-text-muted py-1">{d}</span>
+            <span key={i} className="text-[11px] text-text-muted py-1">{d}</span>
           ))}
           {Array.from({ length: firstDay }).map((_, i) => (
             <div key={`empty-${i}`} />

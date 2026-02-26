@@ -15,6 +15,7 @@ export default function LeaderboardPage() {
   const [currentMemberId, setCurrentMemberId] = useState<string | null>(null)
   const [period, setPeriod] = useState<'month' | 'all'>('month')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => { loadLeaderboard() }, [period])
 
@@ -30,43 +31,71 @@ export default function LeaderboardPage() {
       if (!member) return
       setCurrentMemberId(member.id)
 
-      // Get attendance for this gym
-      let query = supabase
-        .from('attendance')
-        .select('member_id, members(name)')
-        .eq('gym_id', member.gym_id)
+      // Try RPC first (requires migration 002_leaderboard_rpc.sql)
+      const monthStart = new Date()
+      monthStart.setDate(1)
+      monthStart.setHours(0, 0, 0, 0)
 
-      if (period === 'month') {
-        const monthStart = new Date()
-        monthStart.setDate(1)
-        monthStart.setHours(0, 0, 0, 0)
-        query = query.gte('checked_in_at', monthStart.toISOString())
-      }
-
-      const { data: attendance } = await query
-
-      // Count check-ins per member
-      const counts: Record<string, { name: string; count: number }> = {}
-      ;(attendance || []).forEach((a: any) => {
-        const id = a.member_id
-        if (!counts[id]) counts[id] = { name: a.members?.name || 'Unknown', count: 0 }
-        counts[id].count++
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_leaderboard', {
+        p_gym_id: member.gym_id,
+        p_since: period === 'month' ? monthStart.toISOString() : null,
       })
 
-      const sorted = Object.entries(counts)
-        .map(([id, data]) => ({ member_id: id, member_name: data.name, check_ins: data.count, rank: 0 }))
-        .sort((a, b) => b.check_ins - a.check_ins)
+      if (!rpcError && rpcData) {
+        // Use RPC result
+        const sorted = rpcData.map((entry: any, i: number) => ({
+          member_id: entry.member_id,
+          member_name: entry.member_name,
+          check_ins: Number(entry.check_ins),
+          rank: i + 1,
+        }))
+        setLeaderboard(sorted)
+      } else {
+        // Fallback: fetch with limit
+        let query = supabase
+          .from('attendance')
+          .select('member_id, members(name)')
+          .eq('gym_id', member.gym_id)
+          .limit(5000)
 
-      sorted.forEach((entry, i) => { entry.rank = i + 1 })
-      setLeaderboard(sorted)
+        if (period === 'month') {
+          query = query.gte('checked_in_at', monthStart.toISOString())
+        }
+
+        const { data: attendance } = await query
+
+        // Count check-ins per member
+        const counts: Record<string, { name: string; count: number }> = {}
+        ;(attendance || []).forEach((a: any) => {
+          const id = a.member_id
+          if (!counts[id]) counts[id] = { name: a.members?.name || 'Unknown', count: 0 }
+          counts[id].count++
+        })
+
+        const sorted = Object.entries(counts)
+          .map(([id, data]) => ({ member_id: id, member_name: data.name, check_ins: data.count, rank: 0 }))
+          .sort((a, b) => b.check_ins - a.check_ins)
+
+        sorted.forEach((entry, i) => { entry.rank = i + 1 })
+        setLeaderboard(sorted)
+      }
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
   }
 
   const medals = ['🥇', '🥈', '🥉']
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadLeaderboard() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   return (
     <div className="p-4 space-y-4">
@@ -77,7 +106,7 @@ export default function LeaderboardPage() {
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-4 py-2.5 rounded-lg text-xs font-medium transition-colors min-h-[44px] flex items-center active:opacity-70 ${
               period === p ? 'bg-accent-orange text-white' : 'bg-bg-card text-text-secondary border border-border'
             }`}
           >
@@ -103,7 +132,7 @@ export default function LeaderboardPage() {
                 <div className="w-14 h-14 rounded-full bg-bg-card border-2 border-gray-400 mx-auto flex items-center justify-center text-lg font-bold text-text-primary">
                   {leaderboard[1].member_name.charAt(0)}
                 </div>
-                <p className="text-[10px] text-text-secondary mt-1 truncate max-w-[70px]">{leaderboard[1].member_name.split(' ')[0]}</p>
+                <p className="text-[11px] text-text-secondary mt-1 truncate max-w-[70px]">{leaderboard[1].member_name.split(' ')[0]}</p>
                 <p className="text-xs font-bold text-gray-400">🥈 {leaderboard[1].check_ins}</p>
               </div>
               {/* 1st place */}
@@ -119,7 +148,7 @@ export default function LeaderboardPage() {
                 <div className="w-14 h-14 rounded-full bg-bg-card border-2 border-amber-700 mx-auto flex items-center justify-center text-lg font-bold text-text-primary">
                   {leaderboard[2].member_name.charAt(0)}
                 </div>
-                <p className="text-[10px] text-text-secondary mt-1 truncate max-w-[70px]">{leaderboard[2].member_name.split(' ')[0]}</p>
+                <p className="text-[11px] text-text-secondary mt-1 truncate max-w-[70px]">{leaderboard[2].member_name.split(' ')[0]}</p>
                 <p className="text-xs font-bold text-amber-700">🥉 {leaderboard[2].check_ins}</p>
               </div>
             </div>

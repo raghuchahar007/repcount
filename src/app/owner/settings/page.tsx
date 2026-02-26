@@ -9,6 +9,7 @@ import { slugify } from '@/lib/utils'
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [saving, setSaving] = useState(false)
   const [gymId, setGymId] = useState<string | null>(null)
   const [success, setSuccess] = useState('')
@@ -59,13 +60,14 @@ export default function SettingsPage() {
         })
       }
     } catch {
-      // silently handle - page shows empty/fallback state
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
   }
 
   const update = (field: string, value: string) => {
+    if (field === 'slug') value = value.toLowerCase().replace(/[^a-z0-9-]/g, '')
     setForm(prev => {
       const updated = { ...prev, [field]: value }
       if (field === 'name') updated.slug = slugify(value)
@@ -113,9 +115,11 @@ export default function SettingsPage() {
       }
 
       if (gymId) {
-        await supabase.from('gyms').update(gymData).eq('id', gymId)
+        const { error: updateError } = await supabase.from('gyms').update(gymData).eq('id', gymId)
+        if (updateError) throw new Error(updateError.message || 'Failed to save')
       } else {
-        const { data } = await supabase.from('gyms').insert(gymData).select().single()
+        const { data, error: insertError } = await supabase.from('gyms').insert(gymData).select().single()
+        if (insertError) throw new Error(insertError.message || 'Failed to create gym')
         if (data) setGymId(data.id)
       }
 
@@ -131,6 +135,15 @@ export default function SettingsPage() {
   if (loading) {
     return <div className="p-4 space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />)}</div>
   }
+
+  if (loadError) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setLoadError(false); setLoading(true); loadGym() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   return (
     <div className="p-4 space-y-4">
@@ -189,7 +202,7 @@ export default function SettingsPage() {
             <button
               key={f}
               onClick={() => toggleFacility(f)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] ${
                 form.facilities.includes(f)
                   ? 'bg-accent-orange text-white'
                   : 'bg-bg-hover text-text-secondary border border-border'

@@ -148,6 +148,7 @@ const DIET_TEMPLATES: Record<string, DietPlan> = {
 export default function DietPage() {
   const [plan, setPlan] = useState<DietPlan | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => { loadDiet() }, [])
 
@@ -166,7 +167,7 @@ export default function DietPage() {
         setPlan(template)
       }
     } catch {
-      // silently handle - page shows empty/fallback state
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -175,6 +176,15 @@ export default function DietPage() {
   if (loading) {
     return <div className="p-4 space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />)}</div>
   }
+
+  if (error) return (
+    <div className="p-4 flex flex-col items-center justify-center min-h-[40vh] text-center">
+      <p className="text-text-secondary text-sm">Something went wrong</p>
+      <button onClick={() => { setError(false); setLoading(true); loadDiet() }} className="text-accent-orange text-sm mt-2 font-medium min-h-[44px]">
+        Tap to retry
+      </button>
+    </div>
+  )
 
   if (!plan) {
     return (
@@ -196,11 +206,11 @@ export default function DietPage() {
       <div className="grid grid-cols-2 gap-3">
         <Card className="p-3 text-center">
           <p className="text-xl font-bold text-accent-orange">{plan.totalCalories}</p>
-          <p className="text-[10px] text-text-secondary">Daily Calories</p>
+          <p className="text-[11px] text-text-secondary">Daily Calories</p>
         </Card>
         <Card className="p-3 text-center">
           <p className="text-xl font-bold text-status-blue">{plan.totalProtein}g</p>
-          <p className="text-[10px] text-text-secondary">Daily Protein</p>
+          <p className="text-[11px] text-text-secondary">Daily Protein</p>
         </Card>
       </div>
 
@@ -211,11 +221,11 @@ export default function DietPage() {
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="text-sm font-semibold text-text-primary">{meal.name}</p>
-                <p className="text-[10px] text-text-muted">{meal.nameHi} · {meal.time}</p>
+                <p className="text-[11px] text-text-muted">{meal.nameHi} · {meal.time}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs font-medium text-accent-orange">{meal.calories} cal</p>
-                <p className="text-[10px] text-status-blue">{meal.protein}g protein</p>
+                <p className="text-[11px] text-status-blue">{meal.protein}g protein</p>
               </div>
             </div>
             <ul className="space-y-1">
@@ -230,7 +240,7 @@ export default function DietPage() {
         ))}
       </div>
 
-      <p className="text-[10px] text-text-muted text-center">
+      <p className="text-[11px] text-text-muted text-center">
         This is a general plan. Consult your trainer for personalized advice.
       </p>
     </div>

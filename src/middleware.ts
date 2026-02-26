@@ -29,46 +29,51 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
-
   const pathname = request.nextUrl.pathname
 
-  // Public routes that don't need auth
-  const publicRoutes = ['/login', '/gym', '/checkin']
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route)) || pathname === '/'
+  // Pure public routes — skip auth entirely
+  const skipAuthRoutes = ['/gym', '/checkin']
+  const isSkipAuth = skipAuthRoutes.some(route => pathname.startsWith(route)) || pathname === '/'
+  if (isSkipAuth) {
+    return response
+  }
 
-  if (!user && !isPublicRoute) {
+  // Now check auth for all other routes
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Unauthenticated on protected route → redirect to login
+  const isLoginRoute = pathname.startsWith('/login')
+  if (!user && !isLoginRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 
-  if (user && pathname === '/login') {
-    // Get user role from profiles table
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
+  // Authenticated on /login → redirect to dashboard
+  if (user && isLoginRoute) {
+    const roleCookie = request.cookies.get('repcount_role')?.value
+    const role = roleCookie || (await (async () => {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      return profile?.role
+    })())
     const url = request.nextUrl.clone()
-    url.pathname = profile?.role === 'owner' ? '/owner' : '/m'
+    url.pathname = role === 'owner' ? '/owner' : '/m'
     return NextResponse.redirect(url)
   }
 
   // Role-based route protection
   if (user && (pathname.startsWith('/owner') || pathname.startsWith('/m'))) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+    const roleCookie = request.cookies.get('repcount_role')?.value
+    const role = roleCookie || (await (async () => {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      return profile?.role
+    })())
 
-    if (pathname.startsWith('/owner') && profile?.role !== 'owner') {
+    if (pathname.startsWith('/owner') && role !== 'owner') {
       return NextResponse.redirect(new URL('/m', request.url))
     }
-    if (pathname.startsWith('/m') && profile?.role === 'owner') {
+    if (pathname.startsWith('/m') && role === 'owner') {
       return NextResponse.redirect(new URL('/owner', request.url))
     }
   }

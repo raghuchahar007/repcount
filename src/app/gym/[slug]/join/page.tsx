@@ -16,6 +16,7 @@ function JoinForm() {
   const [gymId, setGymId] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [formError, setFormError] = useState('')
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -50,7 +51,7 @@ function JoinForm() {
       if (refMember) referrerMemberId = refMember.id
     }
 
-    await supabase.from('leads').insert({
+    const { error: insertError } = await supabase.from('leads').insert({
       gym_id: gymId,
       name: form.name.trim(),
       phone: form.phone.replace(/\D/g, ''),
@@ -59,6 +60,12 @@ function JoinForm() {
       referrer_member_id: referrerMemberId,
       status: 'new',
     })
+
+    if (insertError) {
+      setFormError('Something went wrong. Please try again.')
+      setLoading(false)
+      return
+    }
 
     setSubmitted(true)
     setLoading(false)
@@ -128,6 +135,8 @@ function JoinForm() {
               </div>
             </div>
           </Card>
+
+          {formError && <p className="text-status-red text-xs text-center">{formError}</p>}
 
           <Button type="submit" fullWidth size="lg" loading={loading}>
             Join Now
