@@ -8,6 +8,9 @@ import membershipRoutes from './routes/membership.routes'
 import dashboardRoutes from './routes/dashboard.routes'
 import leadRoutes from './routes/lead.routes'
 import postRoutes from './routes/post.routes'
+import attendanceRoutes from './routes/attendance.routes'
+import publicRoutes from './routes/public.routes'
+import meRoutes from './routes/me.routes'
 import { errorHandler } from './middleware/errorHandler'
 
 const app = express()
@@ -32,6 +35,9 @@ app.use('/api/gym/:gymId/memberships', membershipRoutes)
 app.use('/api/gym/:gymId/dashboard', dashboardRoutes)
 app.use('/api/gym/:gymId/leads', leadRoutes)
 app.use('/api/gym/:gymId/posts', postRoutes)
+app.use('/api/gym/:gymId/attendance', attendanceRoutes)
+app.use('/api/public', publicRoutes)
+app.use('/api/me', meRoutes)
 
 // Global error handler (must be last)
 app.use(errorHandler)
