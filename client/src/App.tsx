@@ -4,7 +4,16 @@ import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import Login from '@/pages/Login'
 import VerifyOtp from '@/pages/VerifyOtp'
+import OwnerLayout from '@/components/layout/OwnerLayout'
 import OwnerDashboard from '@/pages/owner/Dashboard'
+import MembersPage from '@/pages/owner/Members'
+import AddMemberPage from '@/pages/owner/AddMember'
+import MemberDetailPage from '@/pages/owner/MemberDetail'
+import RenewalsPage from '@/pages/owner/Renewals'
+import LeadsPage from '@/pages/owner/Leads'
+import PostsPage from '@/pages/owner/Posts'
+import CreatePostPage from '@/pages/owner/CreatePost'
+import SettingsPage from '@/pages/owner/Settings'
 import MemberHome from '@/pages/member/Home'
 
 function RootRedirect() {
@@ -24,9 +33,19 @@ export default function App() {
 
         <Route path="/owner" element={
           <ProtectedRoute requiredRole="owner">
-            <OwnerDashboard />
+            <OwnerLayout />
           </ProtectedRoute>
-        } />
+        }>
+          <Route index element={<OwnerDashboard />} />
+          <Route path="members" element={<MembersPage />} />
+          <Route path="members/add" element={<AddMemberPage />} />
+          <Route path="members/:id" element={<MemberDetailPage />} />
+          <Route path="renewals" element={<RenewalsPage />} />
+          <Route path="leads" element={<LeadsPage />} />
+          <Route path="posts" element={<PostsPage />} />
+          <Route path="posts/create" element={<CreatePostPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
 
         <Route path="/m" element={
           <ProtectedRoute requiredRole="member">
