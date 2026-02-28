@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { getLeaderboard } from '@/api/me'
 import { Card } from '@/components/ui/Card'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonList } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { NoGymCard } from '@/components/shared/NoGymCard'
 
 interface LeaderboardEntry {
@@ -84,7 +85,7 @@ export default function LeaderboardPage() {
   const [noGym, setNoGym] = useState(false)
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('month')
 
-  useEffect(() => {
+  function fetchLeaderboard() {
     setLoading(true)
     setError('')
     getLeaderboard(period)
@@ -97,18 +98,20 @@ export default function LeaderboardPage() {
         }
       })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchLeaderboard()
   }, [period])
 
-  if (loading) return <LoadingSpinner text="Loading leaderboard..." />
+  if (loading) return <SkeletonList />
 
   if (noGym) return <NoGymCard feature="the leaderboard" />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchLeaderboard} />
       </div>
     )
   }

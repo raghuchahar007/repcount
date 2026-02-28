@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { SkeletonList } from '@/components/shared/Skeleton'
 import ErrorCard from '@/components/shared/ErrorCard'
+import Pagination from '@/components/shared/Pagination'
 import { todayIST, getInitials, formatPhone, daysUntil } from '@/utils/helpers'
 
 interface LatestMembership {
@@ -64,19 +65,22 @@ export default function MembersPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [gymId, setGymId] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [checkInStatus, setCheckInStatus] = useState<Record<string, 'loading' | 'success' | 'already' | 'error'>>({})
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
   const activeFilter = (searchParams.get('filter') as FilterType) || 'all'
 
-  async function fetchMembers() {
+  async function fetchMembers(p: number = page) {
     setLoading(true)
     setError('')
     try {
       const gym = await getMyGym()
       setGymId(gym._id)
-      const data = await getMembers(gym._id)
-      setMembers(data)
+      const result = await getMembers(gym._id, { page: p })
+      setMembers(result.data)
+      setTotalPages(result.totalPages)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load members')
     } finally {
@@ -85,8 +89,8 @@ export default function MembersPage() {
   }
 
   useEffect(() => {
-    fetchMembers()
-  }, [])
+    fetchMembers(page)
+  }, [page])
 
   const filtered = useMemo(() => {
     let list = members
@@ -129,6 +133,7 @@ export default function MembersPage() {
       searchParams.set('filter', f)
     }
     setSearchParams(searchParams, { replace: true })
+    setPage(1)
   }
 
   const performCheckIn = useCallback(async (memberId: string) => {
@@ -191,7 +196,7 @@ export default function MembersPage() {
       <Input
         placeholder="Search by name or phone..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => { setSearch(e.target.value); setPage(1) }}
       />
 
       {/* Filter chips */}
@@ -305,6 +310,8 @@ export default function MembersPage() {
           })}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )
 }

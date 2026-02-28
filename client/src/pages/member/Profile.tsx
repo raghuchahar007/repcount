@@ -4,7 +4,8 @@ import { getProfile, updateProfile, leaveGym } from '@/api/me'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonCard } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { NoGymCard } from '@/components/shared/NoGymCard'
 import { GOALS, DIET_PREFS, BADGE_TYPES, PLAN_TYPES } from '@/utils/constants'
 import { getInitials, formatDate, formatCurrency, formatPhone } from '@/utils/helpers'
@@ -59,7 +60,9 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false)
   const [leavingGym, setLeavingGym] = useState(false)
 
-  useEffect(() => {
+  function fetchProfile() {
+    setLoading(true)
+    setError('')
     getProfile()
       .then((d) => {
         const profileData = d as ProfileData
@@ -76,6 +79,10 @@ export default function ProfilePage() {
         }
       })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchProfile()
   }, [])
 
   async function handleSave() {
@@ -121,16 +128,21 @@ export default function ProfilePage() {
     await logout()
   }
 
-  if (loading) return <LoadingSpinner text="Loading profile..." />
+  if (loading) {
+    return (
+      <div className="p-4 space-y-3">
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    )
+  }
 
   if (noGym) return <NoGymCard feature="your profile" />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchProfile} />
       </div>
     )
   }

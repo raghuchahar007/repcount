@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { getFeed, joinChallenge } from '@/api/me'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonList } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { NoGymCard } from '@/components/shared/NoGymCard'
 import { POST_TYPES } from '@/utils/constants'
 import { formatDate } from '@/utils/helpers'
@@ -30,7 +31,9 @@ export default function FeedPage() {
   const [noGym, setNoGym] = useState(false)
   const [joiningId, setJoiningId] = useState<string | null>(null)
 
-  useEffect(() => {
+  function fetchFeed() {
+    setLoading(true)
+    setError('')
     getFeed()
       .then((data) => setPosts((data.posts || data) as FeedPost[]))
       .catch((err) => {
@@ -41,6 +44,10 @@ export default function FeedPage() {
         }
       })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchFeed()
   }, [])
 
   async function handleJoin(postId: string) {
@@ -71,16 +78,14 @@ export default function FeedPage() {
     }
   }
 
-  if (loading) return <LoadingSpinner text="Loading feed..." />
+  if (loading) return <SkeletonList />
 
   if (noGym) return <NoGymCard feature="the gym feed" />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchFeed} />
       </div>
     )
   }

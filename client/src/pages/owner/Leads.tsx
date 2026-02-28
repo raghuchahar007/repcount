@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { SkeletonList } from '@/components/shared/Skeleton'
 import ErrorCard from '@/components/shared/ErrorCard'
+import Pagination from '@/components/shared/Pagination'
 import { formatPhone } from '@/utils/helpers'
 import { generateWhatsAppLink } from '@/utils/whatsapp'
 
@@ -39,16 +40,22 @@ export default function LeadsPage() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
   const [activeSource, setActiveSource] = useState<SourceFilter>('all')
   const [converting, setConverting] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
-  async function fetchLeads() {
+  async function fetchLeads(p: number = page) {
     setLoading(true)
     setError('')
     try {
       const gym = await getMyGym()
       setGymId(gym._id)
       setGymName(gym.name || '')
-      const data = await getLeads(gym._id)
-      setLeads(data)
+      const params: Record<string, any> = { page: p }
+      if (activeFilter !== 'all') params.status = activeFilter
+      if (activeSource !== 'all') params.source = activeSource
+      const result = await getLeads(gym._id, params)
+      setLeads(result.data)
+      setTotalPages(result.totalPages)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load leads')
     } finally {
@@ -57,19 +64,11 @@ export default function LeadsPage() {
   }
 
   useEffect(() => {
-    fetchLeads()
-  }, [])
+    fetchLeads(page)
+  }, [page, activeFilter, activeSource])
 
-  const filtered = useMemo(() => {
-    let result = leads
-    if (activeFilter !== 'all') {
-      result = result.filter((l) => l.status === activeFilter)
-    }
-    if (activeSource !== 'all') {
-      result = result.filter((l) => l.source === activeSource)
-    }
-    return result
-  }, [leads, activeFilter, activeSource])
+  // Filtering is now done server-side; leads already contains the filtered result
+  const filtered = leads
 
   const counts = useMemo(() => {
     const c = { all: leads.length, new: 0, contacted: 0, converted: 0 }
@@ -148,7 +147,7 @@ export default function LeadsPage() {
         {FILTERS.map((f) => (
           <button
             key={f.value}
-            onClick={() => setActiveFilter(f.value)}
+            onClick={() => { setActiveFilter(f.value); setPage(1) }}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
               activeFilter === f.value
                 ? 'bg-accent-primary text-white'
@@ -165,7 +164,7 @@ export default function LeadsPage() {
         {SOURCE_FILTERS.map((sf) => (
           <button
             key={sf.value}
-            onClick={() => setActiveSource(sf.value)}
+            onClick={() => { setActiveSource(sf.value); setPage(1) }}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
               activeSource === sf.value
                 ? 'bg-accent-primary text-white'
