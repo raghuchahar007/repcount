@@ -13,8 +13,8 @@ const createPostSchema = z.object({
   body: z.string().optional(),
   post_type: z.enum(['challenge', 'event', 'offer', 'announcement']),
   image_url: z.string().url().optional(),
-  starts_at: z.string().datetime().optional(),
-  ends_at: z.string().datetime().optional(),
+  starts_at: z.string().optional(),
+  ends_at: z.string().optional(),
   is_published: z.boolean().default(true),
 })
 
@@ -23,8 +23,8 @@ const updatePostSchema = z.object({
   body: z.string().optional(),
   post_type: z.enum(['challenge', 'event', 'offer', 'announcement']).optional(),
   image_url: z.string().url().nullable().optional(),
-  starts_at: z.string().datetime().nullable().optional(),
-  ends_at: z.string().datetime().nullable().optional(),
+  starts_at: z.string().nullable().optional(),
+  ends_at: z.string().nullable().optional(),
   is_published: z.boolean().optional(),
 })
 

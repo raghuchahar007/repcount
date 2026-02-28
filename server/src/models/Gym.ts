@@ -21,7 +21,7 @@ const gymSchema = new Schema<IGym>({
   owner: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
-  city: { type: String, required: true },
+  city: { type: String, default: null },
   address: { type: String, default: null },
   phone: { type: String, default: null },
   description: { type: String, default: null },
@@ -34,7 +34,6 @@ const gymSchema = new Schema<IGym>({
   created_at: { type: Date, default: Date.now },
 })
 
-gymSchema.index({ slug: 1 }, { unique: true })
 gymSchema.index({ owner: 1 })
 
 export const Gym = mongoose.model<IGym>('Gym', gymSchema)

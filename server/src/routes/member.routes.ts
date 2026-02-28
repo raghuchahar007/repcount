@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import { Member } from '../models/Member'
 import { Membership } from '../models/Membership'
+import { Attendance } from '../models/Attendance'
 import { requireAuth } from '../middleware/auth'
 import { requireOwner } from '../middleware/roleGuard'
 import { requireGymAccess } from '../middleware/gymAccess'
@@ -77,7 +78,7 @@ router.get(
 
       const result = members.map((m) => ({
         ...m,
-        membership: membershipMap.get(m._id.toString()) || null,
+        latest_membership: membershipMap.get(m._id.toString()) || null,
       }))
 
       res.json(result)
@@ -140,12 +141,18 @@ router.get(
         return res.status(404).json({ error: 'Member not found' })
       }
 
-      // Fetch memberships for this member
-      const memberships = await Membership.find({ member: memberId, gym: gymId })
-        .sort({ expiry_date: -1 })
-        .lean()
+      // Fetch memberships and attendance for this member
+      const [memberships, attendance] = await Promise.all([
+        Membership.find({ member: memberId, gym: gymId })
+          .sort({ expiry_date: -1 })
+          .lean(),
+        Attendance.find({ member: memberId, gym: gymId })
+          .sort({ checked_in_at: -1 })
+          .limit(10)
+          .lean(),
+      ])
 
-      res.json({ ...member, memberships })
+      res.json({ member, memberships, attendance })
     } catch (err: any) {
       console.error('get member error:', err)
       res.status(500).json({ error: 'Failed to fetch member' })

@@ -125,7 +125,7 @@ router.get(
 
       const recentMembersWithMembership = recentMembers.map((m) => ({
         ...m,
-        membership: membershipMap.get(m._id.toString()) || null,
+        latest_membership: membershipMap.get(m._id.toString()) || null,
       }))
 
       res.json({
