@@ -5,7 +5,8 @@
     "dev": "npx nodemon --exec 'npx ts-node' src/server.ts",
     "build": "npx tsc",
     "start": "node dist/server.js",
-    "seed": "npx ts-node src/scripts/seed.ts"
+    "seed": "npx ts-node src/scripts/seed.ts",
+    "drop-indexes": "npx ts-node src/scripts/drop-stale-indexes.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
