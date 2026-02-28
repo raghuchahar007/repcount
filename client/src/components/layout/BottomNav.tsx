@@ -20,7 +20,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
             <Link
               key={item.href}
               to={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] py-3 active:opacity-70 transition-opacity ${isActive ? 'text-accent-orange' : 'text-text-muted'}`}
+              className={`flex flex-col items-center justify-center gap-0.5 min-h-[48px] py-3 active:opacity-70 transition-opacity ${isActive ? 'text-accent-primary' : 'text-text-muted'}`}
             >
               <span className="text-xl">{item.icon}</span>
               <span className="text-[11px]">{item.label}</span>

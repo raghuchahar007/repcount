@@ -297,7 +297,7 @@ export default function MemberDetailPage() {
                   onClick={() => setPlanType(plan.value)}
                   className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-colors border ${
                     planType === plan.value
-                      ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                      ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                       : 'bg-bg-card border-border-light text-text-secondary'
                   }`}
                 >
@@ -323,7 +323,7 @@ export default function MemberDetailPage() {
                   onClick={() => setPaymentMethod(pm.value)}
                   className={`px-2 py-2 rounded-xl text-xs font-medium transition-colors border text-center ${
                     paymentMethod === pm.value
-                      ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                      ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                       : 'bg-bg-card border-border-light text-text-secondary'
                   }`}
                 >

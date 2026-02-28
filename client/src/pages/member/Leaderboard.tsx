@@ -25,7 +25,7 @@ function PodiumCard({ entry }: { entry: LeaderboardEntry }) {
     <div
       className={`flex flex-col items-center gap-1 flex-1 rounded-2xl p-3 border transition-colors ${
         entry.isMe
-          ? 'border-accent-orange bg-accent-orange/10'
+          ? 'border-accent-primary bg-accent-primary/10'
           : 'border-border bg-bg-card'
       }`}
     >
@@ -40,7 +40,7 @@ function PodiumCard({ entry }: { entry: LeaderboardEntry }) {
         {entry.name}
       </span>
       {entry.isMe && (
-        <span className="text-[10px] font-semibold text-accent-orange mt-0.5">YOU</span>
+        <span className="text-[10px] font-semibold text-accent-primary mt-0.5">YOU</span>
       )}
     </div>
   )
@@ -51,7 +51,7 @@ function ListRow({ entry }: { entry: LeaderboardEntry }) {
     <div
       className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
         entry.isMe
-          ? 'border-accent-orange bg-accent-orange/10'
+          ? 'border-accent-primary bg-accent-primary/10'
           : 'border-border bg-bg-card'
       }`}
     >
@@ -61,7 +61,7 @@ function ListRow({ entry }: { entry: LeaderboardEntry }) {
       <span className="flex-1 font-medium text-sm truncate">
         {entry.name}
         {entry.isMe && (
-          <span className="text-accent-orange text-xs ml-1.5 font-semibold">(You)</span>
+          <span className="text-accent-primary text-xs ml-1.5 font-semibold">(You)</span>
         )}
       </span>
       <span className="text-text-secondary text-sm font-semibold">

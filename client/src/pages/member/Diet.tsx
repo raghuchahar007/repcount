@@ -83,7 +83,7 @@ export default function DietPage() {
               <p className="font-semibold text-sm">No diet plan available</p>
               <p className="text-text-secondary text-sm mt-1">
                 Update your goal and diet preference in{' '}
-                <Link to="/m/profile" className="text-accent-orange underline underline-offset-2">
+                <Link to="/m/profile" className="text-accent-primary underline underline-offset-2">
                   Profile
                 </Link>{' '}
                 to get a personalized meal plan.
@@ -125,7 +125,7 @@ export default function DietPage() {
             <div className="flex items-start gap-3">
               {/* Time column */}
               <div className="shrink-0 w-16 pt-0.5">
-                <span className="text-xs font-mono text-accent-orange bg-accent-orange/10 px-1.5 py-0.5 rounded">
+                <span className="text-xs font-mono text-accent-primary bg-accent-primary/10 px-1.5 py-0.5 rounded">
                   {meal.time}
                 </span>
               </div>
@@ -136,7 +136,7 @@ export default function DietPage() {
                 <ul className="mt-1.5 space-y-1">
                   {meal.items.map((item, i) => (
                     <li key={i} className="text-text-secondary text-sm flex items-start gap-2">
-                      <span className="text-accent-orange/60 mt-1.5 shrink-0 block w-1 h-1 rounded-full bg-accent-orange/60" />
+                      <span className="text-accent-primary/60 mt-1.5 shrink-0 block w-1 h-1 rounded-full bg-accent-primary/60" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -176,7 +176,7 @@ export default function DietPage() {
         className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
           dietDone
             ? 'bg-status-green/20 text-status-green border border-status-green/30'
-            : 'bg-accent-orange text-white'
+            : 'bg-accent-primary text-white'
         }`}
       >
         {dietDone ? '\u2713 Diet Completed Today' : 'Mark Diet as Done'}

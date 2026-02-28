@@ -8,7 +8,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  primary: 'bg-gradient-to-r from-accent-orange to-accent-orange-dark text-white shadow-lg shadow-accent-orange/20',
+  primary: 'bg-gradient-to-r from-accent-primary to-accent-primary-dark text-white shadow-lg shadow-accent-primary/20',
   secondary: 'bg-bg-card border border-border-light text-text-primary',
   outline: 'border border-border-light text-text-secondary hover:bg-bg-hover',
   danger: 'bg-status-red/10 text-status-red border border-status-red/20',

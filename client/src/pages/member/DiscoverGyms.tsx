@@ -91,7 +91,7 @@ export default function DiscoverGymsPage() {
                 </div>
                 <div className="text-right ml-3">
                   {lowestPrice(gym.pricing) && (
-                    <p className="text-accent-orange font-bold text-sm">
+                    <p className="text-accent-primary font-bold text-sm">
                       from ₹{lowestPrice(gym.pricing)}
                     </p>
                   )}

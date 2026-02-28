@@ -120,7 +120,7 @@ export default function ProfilePage() {
       {/* Profile Header */}
       <Card variant="gradient">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-orange to-accent-orange-dark flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-accent-orange/30">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-primary to-accent-primary-dark flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-accent-primary/30">
             {getInitials(member.name)}
           </div>
           <div className="flex-1 min-w-0">
@@ -148,7 +148,7 @@ export default function ProfilePage() {
                 onClick={() => setGoal(g.value)}
                 className={`px-2 py-2.5 rounded-xl text-xs font-medium transition-all border text-center ${
                   goal === g.value
-                    ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                    ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                     : 'bg-bg-card border-border-light text-text-secondary'
                 }`}
               >
@@ -170,7 +170,7 @@ export default function ProfilePage() {
                 onClick={() => setDietPref(d.value)}
                 className={`px-2 py-2.5 rounded-xl text-xs font-medium transition-all border text-center ${
                   dietPref === d.value
-                    ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                    ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                     : 'bg-bg-card border-border-light text-text-secondary'
                 }`}
               >
@@ -220,7 +220,7 @@ export default function ProfilePage() {
                 key={badge.type}
                 className={`relative rounded-2xl p-3 border transition-all ${
                   earned
-                    ? 'bg-gradient-to-br from-accent-orange/10 via-accent-orange/5 to-transparent border-accent-orange/30 shadow-sm shadow-accent-orange/10'
+                    ? 'bg-gradient-to-br from-accent-primary/10 via-accent-primary/5 to-transparent border-accent-primary/30 shadow-sm shadow-accent-primary/10'
                     : 'bg-white/[0.02] border-border opacity-50'
                 }`}
               >
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                 navigator.clipboard.writeText(url)
               }
             }}
-            className="w-full bg-accent-orange text-white font-semibold text-sm py-2.5 rounded-xl"
+            className="w-full bg-accent-primary text-white font-semibold text-sm py-2.5 rounded-xl"
           >
             Share Invite Link
           </button>

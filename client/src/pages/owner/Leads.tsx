@@ -117,7 +117,7 @@ export default function LeadsPage() {
             onClick={() => setActiveFilter(f.value)}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
               activeFilter === f.value
-                ? 'bg-accent-orange text-white'
+                ? 'bg-accent-primary text-white'
                 : 'bg-bg-card border border-border-light text-text-secondary'
             }`}
           >

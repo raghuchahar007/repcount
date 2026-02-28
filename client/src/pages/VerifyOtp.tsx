@@ -99,7 +99,7 @@ export default function VerifyOtp() {
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
               onPaste={i === 0 ? handlePaste : undefined}
-              className="w-12 h-14 bg-bg-card border border-border-light rounded-xl text-center text-xl font-bold text-text-primary focus:outline-none focus:border-accent-orange transition-colors"
+              className="w-12 h-14 bg-bg-card border border-border-light rounded-xl text-center text-xl font-bold text-text-primary focus:outline-none focus:border-accent-primary transition-colors"
               disabled={loading}
             />
           ))}

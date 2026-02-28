@@ -165,7 +165,7 @@ export default function GymPage() {
       <Card variant="gradient" className="rounded-none rounded-b-3xl p-6 pt-10 pb-8">
         <div className="text-center">
           {/* Gym icon */}
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent-orange/20 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent-primary/20 flex items-center justify-center">
             <span className="text-3xl">🏋️</span>
           </div>
           <h1 className="text-2xl font-bold text-text-primary mb-2 leading-tight">
@@ -205,7 +205,7 @@ export default function GymPage() {
                 <p className="text-xs text-text-secondary">Phone</p>
                 <a
                   href={`tel:${gym.phone}`}
-                  className="text-sm font-semibold text-accent-orange mt-0.5 block"
+                  className="text-sm font-semibold text-accent-primary mt-0.5 block"
                 >
                   {gym.phone}
                 </a>
@@ -247,17 +247,17 @@ export default function GymPage() {
                     key={plan.value}
                     className={`p-4 relative overflow-hidden ${
                       isBestValue
-                        ? 'border-accent-orange/50 ring-1 ring-accent-orange/30'
+                        ? 'border-accent-primary/50 ring-1 ring-accent-primary/30'
                         : ''
                     }`}
                   >
                     {isBestValue && (
-                      <div className="absolute top-0 right-0 bg-accent-orange text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">
+                      <div className="absolute top-0 right-0 bg-accent-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">
                         BEST VALUE
                       </div>
                     )}
                     <p className="text-xs text-text-secondary mb-1">{plan.label}</p>
-                    <p className={`text-xl font-bold ${isBestValue ? 'text-accent-orange' : 'text-text-primary'}`}>
+                    <p className={`text-xl font-bold ${isBestValue ? 'text-accent-primary' : 'text-text-primary'}`}>
                       {formatCurrency(plan.price)}
                     </p>
                     <p className="text-[10px] text-text-muted mt-1">
@@ -358,7 +358,7 @@ export default function GymPage() {
                       value={leadPhone}
                       onChange={(e) => setLeadPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                       required
-                      className="flex-1 bg-bg-card border border-border-light rounded-r-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-orange transition-colors"
+                      className="flex-1 bg-bg-card border border-border-light rounded-r-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                     />
                   </div>
                 </div>
@@ -370,7 +370,7 @@ export default function GymPage() {
                   <select
                     value={leadGoal}
                     onChange={(e) => setLeadGoal(e.target.value)}
-                    className="w-full bg-bg-card border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-accent-orange transition-colors appearance-none"
+                    className="w-full bg-bg-card border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-accent-primary transition-colors appearance-none"
                   >
                     <option value="">Select a goal</option>
                     {GOALS.map((goal) => (
@@ -453,7 +453,7 @@ export default function GymPage() {
                     }
                   }}
                   disabled={joinStatus === 'loading'}
-                  className="w-full bg-accent-orange text-white font-semibold text-sm py-3 rounded-xl disabled:opacity-50"
+                  className="w-full bg-accent-primary text-white font-semibold text-sm py-3 rounded-xl disabled:opacity-50"
                 >
                   {joinStatus === 'loading' ? 'Sending...' : 'Request to Join'}
                 </button>
@@ -467,7 +467,7 @@ export default function GymPage() {
         {/* ---------------------------------------------------------------- */}
         <div className="text-center pt-4 pb-2">
           <p className="text-[10px] text-text-muted">
-            Powered by <span className="text-accent-orange font-semibold">RepCount</span>
+            Powered by <span className="text-accent-primary font-semibold">RepCount</span>
           </p>
         </div>
       </div>

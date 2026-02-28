@@ -15,7 +15,7 @@ export function NoGymCard({ feature }: { feature?: string }) {
           </p>
           <Link
             to="/m/discover"
-            className="inline-block bg-accent-orange text-white font-semibold text-sm px-6 py-2.5 rounded-xl"
+            className="inline-block bg-accent-primary text-white font-semibold text-sm px-6 py-2.5 rounded-xl"
           >
             Discover Gyms
           </Link>

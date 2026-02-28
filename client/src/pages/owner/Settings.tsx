@@ -163,7 +163,7 @@ export default function SettingsPage() {
             value={form.description}
             onChange={(e) => update('description', e.target.value)}
             rows={3}
-            className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-orange focus:outline-none resize-none"
+            className="w-full bg-bg-primary border border-border rounded-lg px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-accent-primary focus:outline-none resize-none"
           />
         </div>
       </Card>
@@ -204,7 +204,7 @@ export default function SettingsPage() {
               onClick={() => toggleFacility(f)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 form.facilities.includes(f)
-                  ? 'bg-accent-orange text-white'
+                  ? 'bg-accent-primary text-white'
                   : 'bg-bg-hover text-text-secondary border border-border'
               }`}
             >

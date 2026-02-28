@@ -98,7 +98,7 @@ export default function CreatePostPage() {
                   onClick={() => setPostType(pt.value)}
                   className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-colors border text-left ${
                     postType === pt.value
-                      ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                      ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                       : 'bg-bg-card border-border-light text-text-secondary'
                   }`}
                 >
@@ -125,7 +125,7 @@ export default function CreatePostPage() {
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={3}
-              className="w-full bg-bg-card border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-orange transition-colors resize-none"
+              className="w-full bg-bg-card border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors resize-none"
             />
           </div>
 

@@ -106,7 +106,7 @@ export default function OwnerDashboard() {
         <p className="text-text-secondary text-sm mb-6">Create your gym profile to start managing members</p>
         <Link
           to="/owner/settings"
-          className="bg-gradient-to-r from-accent-orange to-accent-orange-dark text-white px-6 py-3 rounded-xl font-semibold"
+          className="bg-gradient-to-r from-accent-primary to-accent-primary-dark text-white px-6 py-3 rounded-xl font-semibold"
         >
           Create Gym Profile
         </Link>
@@ -212,7 +212,7 @@ export default function OwnerDashboard() {
       <div>
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-sm font-semibold text-text-primary">Recent Members</h3>
-          <Link to="/owner/members" className="text-xs text-accent-orange">View All</Link>
+          <Link to="/owner/members" className="text-xs text-accent-primary">View All</Link>
         </div>
         <div className="space-y-2">
           {recentMembers.map((member) => {
@@ -222,7 +222,7 @@ export default function OwnerDashboard() {
               <Link key={member._id} to={`/owner/members/${member._id}`}>
                 <Card className="p-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-bg-hover flex items-center justify-center text-sm font-bold text-accent-orange">
+                    <div className="w-9 h-9 rounded-full bg-bg-hover flex items-center justify-center text-sm font-bold text-accent-primary">
                       {member.name.charAt(0)}
                     </div>
                     <div>
@@ -242,7 +242,7 @@ export default function OwnerDashboard() {
           {recentMembers.length === 0 && (
             <Card className="p-6 text-center">
               <p className="text-text-muted text-sm">No members yet</p>
-              <Link to="/owner/members/add" className="text-accent-orange text-xs mt-1 inline-block">
+              <Link to="/owner/members/add" className="text-accent-primary text-xs mt-1 inline-block">
                 Add your first member
               </Link>
             </Card>

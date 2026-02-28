@@ -177,7 +177,7 @@ export default function AddMemberPage() {
                 onClick={() => setPlanType(plan.value)}
                 className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-colors border ${
                   planType === plan.value
-                    ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                    ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                     : 'bg-bg-card border-border-light text-text-secondary'
                 }`}
               >
@@ -208,7 +208,7 @@ export default function AddMemberPage() {
                 onClick={() => setPaymentMethod(pm.value)}
                 className={`px-2 py-2 rounded-xl text-xs font-medium transition-colors border text-center ${
                   paymentMethod === pm.value
-                    ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                    ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                     : 'bg-bg-card border-border-light text-text-secondary'
                 }`}
               >
@@ -222,7 +222,7 @@ export default function AddMemberPage() {
         <button
           type="button"
           onClick={() => setShowMore(!showMore)}
-          className="w-full text-center text-sm text-accent-orange font-medium py-2"
+          className="w-full text-center text-sm text-accent-primary font-medium py-2"
         >
           {showMore ? 'Hide Details' : 'More Details'}
         </button>
@@ -249,7 +249,7 @@ export default function AddMemberPage() {
                       onClick={() => setGoal(goal === g.value ? '' : g.value)}
                       className={`px-2 py-2 rounded-xl text-xs font-medium transition-colors border text-center ${
                         goal === g.value
-                          ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                          ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                           : 'bg-bg-card border-border-light text-text-secondary'
                       }`}
                     >
@@ -270,7 +270,7 @@ export default function AddMemberPage() {
                       onClick={() => setDietPref(dietPref === d.value ? '' : d.value)}
                       className={`px-2 py-2 rounded-xl text-xs font-medium transition-colors border text-center ${
                         dietPref === d.value
-                          ? 'bg-accent-orange/10 border-accent-orange text-accent-orange'
+                          ? 'bg-accent-primary/10 border-accent-primary text-accent-primary'
                           : 'bg-bg-card border-border-light text-text-secondary'
                       }`}
                     >
@@ -288,7 +288,7 @@ export default function AddMemberPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Any additional notes..."
                   rows={3}
-                  className="w-full bg-bg-card border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-orange transition-colors resize-none"
+                  className="w-full bg-bg-card border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors resize-none"
                 />
               </div>
             </div>

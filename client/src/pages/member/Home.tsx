@@ -212,7 +212,7 @@ export default function MemberHome() {
           <div>
             {streak > 0 ? (
               <>
-                <p className="text-2xl font-bold text-accent-orange">{streak}</p>
+                <p className="text-2xl font-bold text-accent-primary">{streak}</p>
                 <p className="text-text-secondary text-sm">day streak</p>
               </>
             ) : (
@@ -281,7 +281,7 @@ export default function MemberHome() {
                     attended
                       ? 'bg-status-green text-black'
                       : 'bg-white/5 text-text-muted'
-                  } ${isToday ? 'ring-2 ring-accent-orange ring-offset-1 ring-offset-bg-primary' : ''}`}
+                  } ${isToday ? 'ring-2 ring-accent-primary ring-offset-1 ring-offset-bg-primary' : ''}`}
                 >
                   {new Date(dateStr + 'T00:00:00+05:30').getDate()}
                 </div>

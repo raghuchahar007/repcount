@@ -28,7 +28,7 @@ export const BADGE_TYPES = [
 ] as const
 
 export const POST_TYPES = [
-  { value: 'challenge', label: 'Challenge', emoji: '🏆', color: 'text-accent-orange bg-accent-orange/10' },
+  { value: 'challenge', label: 'Challenge', emoji: '🏆', color: 'text-accent-primary bg-accent-primary/10' },
   { value: 'event', label: 'Event', emoji: '🎉', color: 'text-status-blue bg-status-blue/10' },
   { value: 'offer', label: 'Offer', emoji: '🎁', color: 'text-status-green bg-status-green/10' },
   { value: 'announcement', label: 'Announcement', emoji: '📢', color: 'text-status-purple bg-status-purple/10' },

@@ -185,7 +185,7 @@ export default function MembersPage() {
             onClick={() => setFilter(f.value)}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
               activeFilter === f.value
-                ? 'bg-accent-orange text-white'
+                ? 'bg-accent-primary text-white'
                 : 'bg-bg-card border border-border-light text-text-secondary'
             }`}
           >
@@ -212,7 +212,7 @@ export default function MembersPage() {
               <Link key={member._id} to={`/owner/members/${member._id}`}>
                 <Card className="flex items-center gap-3 active:scale-[0.98] transition-transform">
                   {/* Avatar */}
-                  <div className="w-11 h-11 rounded-full bg-accent-orange/10 text-accent-orange flex items-center justify-center text-sm font-bold shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-accent-primary/10 text-accent-primary flex items-center justify-center text-sm font-bold shrink-0">
                     {getInitials(member.name)}
                   </div>
 

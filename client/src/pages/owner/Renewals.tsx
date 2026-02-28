@@ -93,7 +93,7 @@ export default function RenewalsPage() {
                     <div className="flex items-center gap-2">
                       <Link
                         to={`/owner/members/${m.member._id}`}
-                        className="text-sm font-semibold text-text-primary truncate hover:text-accent-orange transition-colors"
+                        className="text-sm font-semibold text-text-primary truncate hover:text-accent-primary transition-colors"
                       >
                         {m.member.name}
                       </Link>

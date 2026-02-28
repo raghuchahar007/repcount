@@ -39,7 +39,7 @@ export default function ChooseRole() {
             onClick={() => setSelected('owner')}
             className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
               selected === 'owner'
-                ? 'border-accent-orange bg-accent-orange/5'
+                ? 'border-accent-primary bg-accent-primary/5'
                 : 'border-border-light bg-bg-card'
             }`}
           >
@@ -54,7 +54,7 @@ export default function ChooseRole() {
             onClick={() => setSelected('member')}
             className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
               selected === 'member'
-                ? 'border-accent-orange bg-accent-orange/5'
+                ? 'border-accent-primary bg-accent-primary/5'
                 : 'border-border-light bg-bg-card'
             }`}
           >

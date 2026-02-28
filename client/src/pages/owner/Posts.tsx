@@ -72,7 +72,7 @@ export default function PostsPage() {
             <p className="text-text-muted text-sm">No posts yet</p>
             <Link
               to="/owner/posts/create"
-              className="text-accent-orange text-sm font-semibold mt-2 inline-block"
+              className="text-accent-primary text-sm font-semibold mt-2 inline-block"
             >
               Create your first post
             </Link>

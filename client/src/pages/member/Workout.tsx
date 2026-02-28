@@ -35,7 +35,7 @@ function ExerciseTable({ exercises }: { exercises: WorkoutDay['exercises'] }) {
           }`}
         >
           <span className="text-text-primary font-medium truncate">{ex.name}</span>
-          <span className="w-20 text-center text-accent-orange text-xs font-mono">{ex.sets}</span>
+          <span className="w-20 text-center text-accent-primary text-xs font-mono">{ex.sets}</span>
           <span className="w-10 text-center text-text-muted text-xs font-mono">{ex.rest}</span>
         </div>
       ))}
@@ -111,7 +111,7 @@ export default function WorkoutPage() {
               <p className="font-semibold text-sm">No workout plan available</p>
               <p className="text-text-secondary text-sm mt-1">
                 Update your goal in{' '}
-                <Link to="/m/profile" className="text-accent-orange underline underline-offset-2">
+                <Link to="/m/profile" className="text-accent-primary underline underline-offset-2">
                   Profile
                 </Link>{' '}
                 to get a personalized workout schedule.
@@ -168,7 +168,7 @@ export default function WorkoutPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <div>
-                    <span className="text-xs font-mono text-accent-orange bg-accent-orange/10 px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-mono text-accent-primary bg-accent-primary/10 px-1.5 py-0.5 rounded">
                       {day.day}
                     </span>
                   </div>
@@ -213,7 +213,7 @@ export default function WorkoutPage() {
         className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
           workoutDone
             ? 'bg-status-green/20 text-status-green border border-status-green/30'
-            : 'bg-accent-orange text-white'
+            : 'bg-accent-primary text-white'
         }`}
       >
         {workoutDone ? '\u2713 Workout Completed Today' : 'Mark Workout as Done'}
