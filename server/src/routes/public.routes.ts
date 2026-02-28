@@ -141,8 +141,8 @@ router.post(
       await Lead.create({
         gym: gym._id,
         user: req.user!.userId,
-        name: user.full_name || user.phone,
-        phone: user.phone.replace('+91', ''),
+        name: user.full_name || user.phone || user.email,
+        phone: user.phone ? user.phone.replace('+91', '') : '',
         source,
         referrer: referrerId,
         status: 'new',
