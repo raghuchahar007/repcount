@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [gymId, setGymId] = useState<string | null>(null)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
+  const [initialForm, setInitialForm] = useState<string>('')
   const [form, setForm] = useState({
     name: '',
     slug: '',
@@ -43,7 +44,7 @@ export default function SettingsPage() {
       const gym = await getMyGym()
       if (gym && gym._id) {
         setGymId(gym._id)
-        setForm({
+        const formValues = {
           name: gym.name || '',
           slug: gym.slug || '',
           address: gym.address || '',
@@ -57,7 +58,9 @@ export default function SettingsPage() {
           half_yearly: gym.pricing?.half_yearly?.toString() || '',
           yearly: gym.pricing?.yearly?.toString() || '',
           facilities: gym.facilities || [],
-        })
+        }
+        setForm(formValues)
+        setInitialForm(JSON.stringify(formValues))
       }
     } catch (err: any) {
       // 404 means no gym yet — that's expected for new owners
@@ -85,6 +88,8 @@ export default function SettingsPage() {
         : [...prev.facilities, f],
     }))
   }
+
+  const isDirty = initialForm && JSON.stringify(form) !== initialForm
 
   const handleSave = async () => {
     if (!form.name.trim()) {
@@ -122,6 +127,7 @@ export default function SettingsPage() {
       }
 
       setSuccess('Saved!')
+      setInitialForm(JSON.stringify(form))
       setTimeout(() => setSuccess(''), 2000)
     } catch (err: any) {
       setError(err?.response?.data?.error || err.message || 'Failed to save')
@@ -148,6 +154,12 @@ export default function SettingsPage() {
   return (
     <div className="p-4 space-y-4">
       <h2 className="text-lg font-bold text-text-primary">Gym Settings</h2>
+
+      {isDirty && (
+        <div className="bg-status-yellow/20 text-status-yellow text-sm font-medium px-4 py-2 rounded-xl text-center mb-4">
+          You have unsaved changes
+        </div>
+      )}
 
       {/* Basic Info */}
       <Card className="p-4 space-y-3">
