@@ -61,6 +61,7 @@ export default function App() {
           <Route path="leads" element={<LeadsPage />} />
           <Route path="posts" element={<PostsPage />} />
           <Route path="posts/create" element={<CreatePostPage />} />
+          <Route path="posts/edit/:postId" element={<CreatePostPage />} />
           <Route path="join-requests" element={<JoinRequestsPage />} />
           <Route path="scan" element={<ScanCheckinPage />} />
           <Route path="settings" element={<SettingsPage />} />

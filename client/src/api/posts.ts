@@ -5,6 +5,13 @@ export async function getPosts(gymId: string) {
   return data
 }
 
+export async function getPost(gymId: string, postId: string) {
+  const posts = await getPosts(gymId)
+  const post = posts.find((p: any) => p._id === postId)
+  if (!post) throw new Error('Post not found')
+  return post
+}
+
 export async function createPost(gymId: string, postData: any) {
   const { data } = await api.post(`/gym/${gymId}/posts`, postData)
   return data

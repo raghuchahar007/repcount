@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { getMyGym } from '@/api/gym'
-import { createPost } from '@/api/posts'
+import { createPost, updatePost, getPost } from '@/api/posts'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -12,6 +12,8 @@ const DATE_POST_TYPES = ['challenge', 'event', 'offer']
 
 export default function CreatePostPage() {
   const navigate = useNavigate()
+  const { postId } = useParams<{ postId?: string }>()
+  const isEditMode = Boolean(postId)
 
   const [gymId, setGymId] = useState('')
   const [loading, setLoading] = useState(true)
@@ -30,14 +32,23 @@ export default function CreatePostPage() {
       try {
         const gym = await getMyGym()
         setGymId(gym._id)
+
+        if (isEditMode && postId) {
+          const post = await getPost(gym._id, postId)
+          setPostType(post.post_type || '')
+          setTitle(post.title || '')
+          setBody(post.body || '')
+          setStartsAt(post.starts_at ? post.starts_at.slice(0, 10) : '')
+          setEndsAt(post.ends_at ? post.ends_at.slice(0, 10) : '')
+        }
       } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load gym')
+        setError(err.response?.data?.error || err.message || 'Failed to load')
       } finally {
         setLoading(false)
       }
     }
     load()
-  }, [])
+  }, [isEditMode, postId])
 
   const showDateFields = DATE_POST_TYPES.includes(postType)
 
@@ -53,17 +64,23 @@ export default function CreatePostPage() {
     setSubmitting(true)
 
     try {
-      await createPost(gymId, {
+      const payload = {
         title: title.trim(),
         body: body.trim() || undefined,
         post_type: postType || 'announcement',
         starts_at: startsAt || undefined,
         ends_at: endsAt || undefined,
         is_published: true,
-      })
+      }
+
+      if (isEditMode && postId) {
+        await updatePost(gymId, postId, payload)
+      } else {
+        await createPost(gymId, payload)
+      }
       navigate('/owner/posts')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create post')
+      setError(err.response?.data?.error || `Failed to ${isEditMode ? 'update' : 'create'} post`)
     } finally {
       setSubmitting(false)
     }
@@ -82,7 +99,9 @@ export default function CreatePostPage() {
       </button>
 
       {/* Header */}
-      <h2 className="text-lg font-bold text-text-primary">Create Post</h2>
+      <h2 className="text-lg font-bold text-text-primary">
+        {isEditMode ? 'Edit Post' : 'Create Post'}
+      </h2>
 
       {/* Form */}
       <Card>
@@ -154,7 +173,7 @@ export default function CreatePostPage() {
 
           {/* Submit */}
           <Button type="submit" fullWidth loading={submitting}>
-            Publish Post
+            {isEditMode ? 'Update Post' : 'Publish Post'}
           </Button>
         </form>
       </Card>
