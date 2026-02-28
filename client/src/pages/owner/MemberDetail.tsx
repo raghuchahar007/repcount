@@ -7,7 +7,9 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonCard } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
+import { useToast } from '@/contexts/ToastContext'
 import { PLAN_TYPES, GOALS } from '@/utils/constants'
 import { todayIST, daysUntil, daysSince, formatDate, formatCurrency, formatPhone, getInitials } from '@/utils/helpers'
 import { generateWhatsAppLink, templates } from '@/utils/whatsapp'
@@ -65,6 +67,7 @@ function getStatus(memberships: Membership[]): { label: string; color: 'red' | '
 export default function MemberDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   const [gymId, setGymId] = useState('')
   const [gymName, setGymName] = useState('')
@@ -79,11 +82,9 @@ export default function MemberDetailPage() {
   const [amount, setAmount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [paymentSubmitting, setPaymentSubmitting] = useState(false)
-  const [paymentError, setPaymentError] = useState('')
 
   // Check-in state
   const [checkInLoading, setCheckInLoading] = useState(false)
-  const [checkInMsg, setCheckInMsg] = useState<{ text: string; type: 'success' | 'warning' | 'error' } | null>(null)
 
   async function loadData() {
     try {
@@ -108,12 +109,11 @@ export default function MemberDetailPage() {
   async function handleRecordPayment(e: React.FormEvent) {
     e.preventDefault()
     if (!amount || Number(amount) <= 0) {
-      setPaymentError('Enter a valid amount')
+      toast('Enter a valid amount', 'error')
       return
     }
 
     setPaymentSubmitting(true)
-    setPaymentError('')
 
     try {
       await recordPayment(gymId, {
@@ -126,11 +126,12 @@ export default function MemberDetailPage() {
       setAmount('')
       setPlanType('monthly')
       setPaymentMethod('cash')
+      toast('Payment recorded')
       // Reload member data
       const memberData = await getMember(gymId, id!)
       setData(memberData)
     } catch (err: any) {
-      setPaymentError(err.response?.data?.error || 'Failed to record payment')
+      toast(err.response?.data?.error || 'Failed to record payment', 'error')
     } finally {
       setPaymentSubmitting(false)
     }
@@ -139,27 +140,32 @@ export default function MemberDetailPage() {
   async function handleCheckIn() {
     if (!gymId || checkInLoading) return
     setCheckInLoading(true)
-    setCheckInMsg(null)
     try {
       await checkInMember(gymId, id!)
-      setCheckInMsg({ text: 'Checked in!', type: 'success' })
+      toast('Checked in!')
       // Reload data to update attendance list
       const memberData = await getMember(gymId, id!)
       setData(memberData)
-      setTimeout(() => setCheckInMsg(null), 2500)
     } catch (err: any) {
       if (err.response?.status === 409) {
-        setCheckInMsg({ text: 'Already checked in today', type: 'warning' })
+        toast('Already checked in today', 'info')
       } else {
-        setCheckInMsg({ text: err.response?.data?.error || 'Check-in failed', type: 'error' })
+        toast(err.response?.data?.error || 'Check-in failed', 'error')
       }
-      setTimeout(() => setCheckInMsg(null), 2500)
     } finally {
       setCheckInLoading(false)
     }
   }
 
-  if (loading) return <LoadingSpinner text="Loading member..." />
+  if (loading) {
+    return (
+      <div className="p-4 space-y-3">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    )
+  }
 
   if (error || !data) {
     return (
@@ -170,9 +176,7 @@ export default function MemberDetailPage() {
         >
           ← Back
         </button>
-        <Card variant="alert-danger">
-          <p className="text-sm text-status-red">{error || 'Member not found'}</p>
-        </Card>
+        <ErrorCard message={error || 'Member not found'} onRetry={loadData} />
       </div>
     )
   }
@@ -269,16 +273,11 @@ export default function MemberDetailPage() {
         <Button
           fullWidth
           size="sm"
-          variant={
-            checkInMsg?.type === 'success' ? 'success' :
-            checkInMsg?.type === 'warning' ? 'secondary' :
-            checkInMsg?.type === 'error' ? 'danger' :
-            'secondary'
-          }
+          variant="secondary"
           loading={checkInLoading}
           onClick={handleCheckIn}
         >
-          {checkInMsg ? checkInMsg.text : 'Check In'}
+          Check In
         </Button>
         {getActionButton()}
       </div>
@@ -332,19 +331,12 @@ export default function MemberDetailPage() {
               ))}
             </div>
 
-            {paymentError && (
-              <p className="text-xs text-status-red">{paymentError}</p>
-            )}
-
             <div className="flex gap-2">
               <Button
                 type="button"
                 variant="secondary"
                 fullWidth
-                onClick={() => {
-                  setShowPaymentForm(false)
-                  setPaymentError('')
-                }}
+                onClick={() => setShowPaymentForm(false)}
               >
                 Cancel
               </Button>

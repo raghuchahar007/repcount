@@ -35,10 +35,16 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { gymId } = req.params
-      const posts = await GymPost.find({ gym: gymId })
-        .sort({ created_at: -1 })
-        .lean()
-      res.json(posts)
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 20
+      const skip = (page - 1) * limit
+
+      const filter = { gym: gymId }
+      const [posts, total] = await Promise.all([
+        GymPost.find(filter).sort({ created_at: -1 }).skip(skip).limit(limit).lean(),
+        GymPost.countDocuments(filter),
+      ])
+      res.json({ data: posts, total, page, totalPages: Math.ceil(total / limit) })
     } catch (err: any) {
       console.error('list posts error:', err)
       res.status(500).json({ error: 'Failed to fetch posts' })

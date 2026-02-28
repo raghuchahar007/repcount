@@ -34,6 +34,9 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { gymId } = req.params
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 20
+      const skip = (page - 1) * limit
       const filter: Record<string, any> = { gym: gymId }
 
       if (req.query.status && typeof req.query.status === 'string') {
@@ -44,8 +47,11 @@ router.get(
         filter.source = req.query.source
       }
 
-      const leads = await Lead.find(filter).sort({ created_at: -1 }).lean()
-      res.json(leads)
+      const [leads, total] = await Promise.all([
+        Lead.find(filter).sort({ created_at: -1 }).skip(skip).limit(limit).lean(),
+        Lead.countDocuments(filter),
+      ])
+      res.json({ data: leads, total, page, totalPages: Math.ceil(total / limit) })
     } catch (err: any) {
       console.error('list leads error:', err)
       res.status(500).json({ error: 'Failed to fetch leads' })

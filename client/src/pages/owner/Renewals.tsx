@@ -6,7 +6,8 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonList } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { todayIST, daysSince, formatCurrency, formatPhone, formatDate } from '@/utils/helpers'
 import { generateWhatsAppLink, templates } from '@/utils/whatsapp'
 
@@ -34,31 +35,32 @@ export default function RenewalsPage() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortType>('overdue')
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const gym = await getMyGym()
-        setGymName(gym.name || '')
-        setGymUpi(gym.upi_id || '')
-        const data = await getRenewals(gym._id)
-        setRenewals(data)
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load renewals')
-      } finally {
-        setLoading(false)
-      }
+  async function fetchRenewals() {
+    setLoading(true)
+    setError('')
+    try {
+      const gym = await getMyGym()
+      setGymName(gym.name || '')
+      setGymUpi(gym.upi_id || '')
+      const data = await getRenewals(gym._id)
+      setRenewals(data)
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load renewals')
+    } finally {
+      setLoading(false)
     }
-    load()
+  }
+
+  useEffect(() => {
+    fetchRenewals()
   }, [])
 
-  if (loading) return <LoadingSpinner text="Loading renewals..." />
+  if (loading) return <SkeletonList />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm text-status-red">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchRenewals} />
       </div>
     )
   }

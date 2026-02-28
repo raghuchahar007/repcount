@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getHome, selfCheckIn } from '@/api/me'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonDashboard } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { QrScanner } from '@/components/shared/QrScanner'
 import { BADGE_TYPES, PLAN_TYPES, MOTIVATION_QUOTES } from '@/utils/constants'
 import { formatDate, daysUntil, todayIST } from '@/utils/helpers'
@@ -63,7 +64,9 @@ export default function MemberHome() {
   const [scanLoading, setScanLoading] = useState(false)
   const navigate = useNavigate()
 
-  useEffect(() => {
+  function fetchHome() {
+    setLoading(true)
+    setError('')
     getHome()
       .then((d) => setData(d as HomeData))
       .catch((err) => {
@@ -74,6 +77,10 @@ export default function MemberHome() {
         setError(err?.response?.data?.message || 'Failed to load home')
       })
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchHome()
   }, [])
 
   async function handleGymQrScan(qrData: string) {
@@ -97,14 +104,12 @@ export default function MemberHome() {
     }
   }
 
-  if (loading) return <LoadingSpinner text="Loading your dashboard..." />
+  if (loading) return <SkeletonDashboard />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchHome} />
       </div>
     )
   }

@@ -18,6 +18,7 @@ export default function SettingsPage() {
   const [gymId, setGymId] = useState<string | null>(null)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [initialForm, setInitialForm] = useState<string>('')
   const [form, setForm] = useState({
     name: '',
@@ -92,13 +93,23 @@ export default function SettingsPage() {
   const isDirty = initialForm && JSON.stringify(form) !== initialForm
 
   const handleSave = async () => {
+    const errs: string[] = []
     if (!form.name.trim()) {
-      setError('Gym name is required')
+      errs.push('Gym name is required')
+    }
+    if (!form.slug.trim()) {
+      errs.push('Gym page URL (slug) is required')
+    }
+    setValidationErrors(errs)
+    if (errs.length > 0) {
+      setError('')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
     setSaving(true)
     setError('')
     setSuccess('')
+    setValidationErrors([])
 
     try {
       const gymData = {
@@ -158,6 +169,14 @@ export default function SettingsPage() {
       {isDirty && (
         <div className="bg-status-yellow/20 text-status-yellow text-sm font-medium px-4 py-2 rounded-xl text-center mb-4">
           You have unsaved changes
+        </div>
+      )}
+
+      {validationErrors.length > 0 && (
+        <div className="bg-status-red/10 border border-status-red/20 rounded-xl p-3 mb-4">
+          <p className="text-status-red text-sm font-medium">
+            {validationErrors.length} error{validationErrors.length > 1 ? 's' : ''} — please fix below
+          </p>
         </div>
       )}
 

@@ -57,7 +57,15 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const { gymId } = req.params
-      const members = await Member.find({ gym: gymId }).sort({ created_at: -1 }).lean()
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 20
+      const skip = (page - 1) * limit
+
+      const filter = { gym: gymId }
+      const [members, total] = await Promise.all([
+        Member.find(filter).sort({ created_at: -1 }).skip(skip).limit(limit).lean(),
+        Member.countDocuments(filter),
+      ])
 
       // Batch-fetch latest membership for each member
       const memberIds = members.map((m) => m._id)
@@ -81,7 +89,7 @@ router.get(
         latest_membership: membershipMap.get(m._id.toString()) || null,
       }))
 
-      res.json(result)
+      res.json({ data: result, total, page, totalPages: Math.ceil(total / limit) })
     } catch (err: any) {
       console.error('list members error:', err)
       res.status(500).json({ error: 'Failed to fetch members' })

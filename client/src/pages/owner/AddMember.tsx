@@ -38,6 +38,7 @@ export default function AddMemberPage() {
   const [nameError, setNameError] = useState('')
   const [phoneError, setPhoneError] = useState('')
   const [amountError, setAmountError] = useState('')
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   useEffect(() => {
     async function load() {
@@ -54,28 +55,35 @@ export default function AddMemberPage() {
   }, [])
 
   function validate(): boolean {
-    let valid = true
+    const errs: string[] = []
     setNameError('')
     setPhoneError('')
     setAmountError('')
 
     if (!name.trim()) {
-      setNameError('Name is required')
-      valid = false
+      const msg = 'Name is required'
+      setNameError(msg)
+      errs.push(msg)
     }
 
     const cleanPhone = phone.replace(/\D/g, '')
     if (cleanPhone.length !== 10) {
-      setPhoneError('Enter a valid 10-digit phone number')
-      valid = false
+      const msg = 'Enter a valid 10-digit phone number'
+      setPhoneError(msg)
+      errs.push(msg)
     }
 
     if (amount && Number(amount) <= 0) {
-      setAmountError('Amount must be greater than 0')
-      valid = false
+      const msg = 'Amount must be greater than 0'
+      setAmountError(msg)
+      errs.push(msg)
     }
 
-    return valid
+    setValidationErrors(errs)
+    if (errs.length > 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    return errs.length === 0
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -84,6 +92,7 @@ export default function AddMemberPage() {
 
     setSubmitting(true)
     setError('')
+    setValidationErrors([])
 
     try {
       const payload: Record<string, any> = {
@@ -138,6 +147,14 @@ export default function AddMemberPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {validationErrors.length > 0 && (
+          <div className="bg-status-red/10 border border-status-red/20 rounded-xl p-3 mb-4">
+            <p className="text-status-red text-sm font-medium">
+              {validationErrors.length} error{validationErrors.length > 1 ? 's' : ''} — please fix below
+            </p>
+          </div>
+        )}
+
         {/* Basic Info */}
         <Card>
           <h3 className="text-sm font-semibold text-text-primary mb-3">Basic Info</h3>

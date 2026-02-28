@@ -5,6 +5,8 @@ import { getDashboard } from '@/api/memberships'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { SkeletonDashboard } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { formatCurrency } from '@/utils/helpers'
 
 interface DashboardStats {
@@ -83,21 +85,12 @@ export default function OwnerDashboard() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="p-4 space-y-4">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="h-24 bg-bg-card rounded-2xl animate-pulse" />
-        ))}
-      </div>
-    )
-  }
+  if (loading) return <SkeletonDashboard />
 
   if (error) {
     return (
-      <div className="p-4 flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <p className="text-text-secondary text-sm mb-4">{error}</p>
-        <Button variant="secondary" onClick={loadDashboard}>Retry</Button>
+      <div className="p-4">
+        <ErrorCard message={error} onRetry={loadDashboard} />
       </div>
     )
   }

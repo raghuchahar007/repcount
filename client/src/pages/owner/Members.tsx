@@ -6,7 +6,8 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonList } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { todayIST, getInitials, formatPhone, daysUntil } from '@/utils/helpers'
 
 interface LatestMembership {
@@ -68,20 +69,23 @@ export default function MembersPage() {
 
   const activeFilter = (searchParams.get('filter') as FilterType) || 'all'
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const gym = await getMyGym()
-        setGymId(gym._id)
-        const data = await getMembers(gym._id)
-        setMembers(data)
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load members')
-      } finally {
-        setLoading(false)
-      }
+  async function fetchMembers() {
+    setLoading(true)
+    setError('')
+    try {
+      const gym = await getMyGym()
+      setGymId(gym._id)
+      const data = await getMembers(gym._id)
+      setMembers(data)
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load members')
+    } finally {
+      setLoading(false)
     }
-    load()
+  }
+
+  useEffect(() => {
+    fetchMembers()
   }, [])
 
   const filtered = useMemo(() => {
@@ -161,14 +165,12 @@ export default function MembersPage() {
     }
   }, [confirmingId, checkInStatus, performCheckIn])
 
-  if (loading) return <LoadingSpinner text="Loading members..." />
+  if (loading) return <SkeletonList />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm text-status-red">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchMembers} />
       </div>
     )
   }

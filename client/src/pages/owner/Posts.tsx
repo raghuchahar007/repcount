@@ -4,7 +4,8 @@ import { getMyGym } from '@/api/gym'
 import { getPosts, deletePost } from '@/api/posts'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonList } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { formatDate } from '@/utils/helpers'
 import { POST_TYPES } from '@/utils/constants'
 
@@ -30,20 +31,23 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const gym = await getMyGym()
-        setGymId(gym._id)
-        const data = await getPosts(gym._id)
-        setPosts(data)
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load posts')
-      } finally {
-        setLoading(false)
-      }
+  async function fetchPosts() {
+    setLoading(true)
+    setError('')
+    try {
+      const gym = await getMyGym()
+      setGymId(gym._id)
+      const data = await getPosts(gym._id)
+      setPosts(data)
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load posts')
+    } finally {
+      setLoading(false)
     }
-    load()
+  }
+
+  useEffect(() => {
+    fetchPosts()
   }, [])
 
   async function handleDelete(postId: string) {
@@ -56,14 +60,12 @@ export default function PostsPage() {
     }
   }
 
-  if (loading) return <LoadingSpinner text="Loading posts..." />
+  if (loading) return <SkeletonList count={3} />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm text-status-red">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchPosts} />
       </div>
     )
   }

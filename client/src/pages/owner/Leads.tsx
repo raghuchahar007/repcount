@@ -5,7 +5,8 @@ import { convertLead } from '@/api/owner'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { SkeletonList } from '@/components/shared/Skeleton'
+import ErrorCard from '@/components/shared/ErrorCard'
 import { formatPhone } from '@/utils/helpers'
 import { generateWhatsAppLink } from '@/utils/whatsapp'
 
@@ -39,21 +40,24 @@ export default function LeadsPage() {
   const [activeSource, setActiveSource] = useState<SourceFilter>('all')
   const [converting, setConverting] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const gym = await getMyGym()
-        setGymId(gym._id)
-        setGymName(gym.name || '')
-        const data = await getLeads(gym._id)
-        setLeads(data)
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load leads')
-      } finally {
-        setLoading(false)
-      }
+  async function fetchLeads() {
+    setLoading(true)
+    setError('')
+    try {
+      const gym = await getMyGym()
+      setGymId(gym._id)
+      setGymName(gym.name || '')
+      const data = await getLeads(gym._id)
+      setLeads(data)
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to load leads')
+    } finally {
+      setLoading(false)
     }
-    load()
+  }
+
+  useEffect(() => {
+    fetchLeads()
   }, [])
 
   const filtered = useMemo(() => {
@@ -109,14 +113,12 @@ export default function LeadsPage() {
     return generateWhatsAppLink(lead.phone, message)
   }
 
-  if (loading) return <LoadingSpinner text="Loading leads..." />
+  if (loading) return <SkeletonList />
 
   if (error) {
     return (
       <div className="p-4">
-        <Card variant="alert-danger">
-          <p className="text-sm text-status-red">{error}</p>
-        </Card>
+        <ErrorCard message={error} onRetry={fetchLeads} />
       </div>
     )
   }
