@@ -1,5 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { getPublicGym, getPublicPosts, submitLead } from '@/api/public'
 import { requestJoinGym } from '@/api/me'
 import { useAuth } from '@/contexts/AuthContext'
@@ -51,6 +51,8 @@ function getPostTypeLabel(postType: string): string {
 
 export default function GymPage() {
   const { slug } = useParams<{ slug: string }>()
+  const [searchParams] = useSearchParams()
+  const ref = searchParams.get('ref')
   const { user } = useAuth()
   const [gym, setGym] = useState<Gym | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
@@ -440,7 +442,7 @@ export default function GymPage() {
                   onClick={async () => {
                     setJoinStatus('loading')
                     try {
-                      await requestJoinGym(slug!)
+                      await requestJoinGym(slug!, ref || undefined)
                       setJoinStatus('sent')
                     } catch (err: any) {
                       if (err?.response?.status === 409) {

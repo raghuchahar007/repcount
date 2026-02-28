@@ -128,12 +128,23 @@ router.post(
         return res.status(409).json({ error: 'Already requested', status: existing.status })
       }
 
+      const { referrer } = req.body
+      let source: string = 'app_request'
+      let referrerId = null
+      if (referrer === 'owner') {
+        source = 'owner_invite'
+      } else if (referrer && referrer !== 'owner') {
+        source = 'referral'
+        referrerId = referrer
+      }
+
       await Lead.create({
         gym: gym._id,
         user: req.user!.userId,
         name: user.full_name || user.phone,
         phone: user.phone.replace('+91', ''),
-        source: 'app_request',
+        source,
+        referrer: referrerId,
         status: 'new',
       })
       res.status(201).json({ message: 'Join request sent' })

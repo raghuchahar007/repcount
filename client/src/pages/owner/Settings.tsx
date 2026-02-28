@@ -242,6 +242,36 @@ export default function SettingsPage() {
         </Card>
       )}
 
+      {/* Invite Members */}
+      {gymId && form.slug && (
+        <Card className="p-4 space-y-3">
+          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Invite Members</p>
+          <p className="text-text-secondary text-xs">Share this link for people to request joining your gym</p>
+          <div className="flex gap-2">
+            <input
+              readOnly
+              value={`${window.location.origin}/gym/${form.slug}?ref=owner`}
+              className="flex-1 bg-bg-primary border border-border rounded-lg px-3 py-2 text-xs text-text-primary"
+            />
+            <Button
+              size="sm"
+              onClick={() => {
+                const url = `${window.location.origin}/gym/${form.slug}?ref=owner`
+                if (navigator.share) {
+                  navigator.share({ title: `Join ${form.name}`, url })
+                } else {
+                  navigator.clipboard.writeText(url)
+                  setSuccess('Link copied!')
+                  setTimeout(() => setSuccess(''), 2000)
+                }
+              }}
+            >
+              Share
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Logout */}
       <Button variant="ghost" fullWidth onClick={handleLogout}>
         Logout

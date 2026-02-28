@@ -28,8 +28,14 @@ interface Membership {
   created_at: string
 }
 
+interface GymInfo {
+  name: string
+  slug: string
+}
+
 interface ProfileData {
   member: MemberProfile
+  gym: GymInfo | null
   memberships: Membership[]
 }
 
@@ -279,6 +285,27 @@ export default function ProfilePage() {
           })}
         </div>
       </Card>
+
+      {/* Refer a Friend */}
+      {data?.gym?.slug && (
+        <Card>
+          <h3 className="text-sm font-semibold text-text-secondary mb-2">Refer a Friend</h3>
+          <p className="text-text-secondary text-xs mb-3">Invite friends to join {data.gym.name}</p>
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/gym/${data.gym!.slug}?ref=${data.member._id}`
+              if (navigator.share) {
+                navigator.share({ title: `Join ${data.gym!.name}`, text: 'Check out my gym on RepCount!', url })
+              } else {
+                navigator.clipboard.writeText(url)
+              }
+            }}
+            className="w-full bg-accent-orange text-white font-semibold text-sm py-2.5 rounded-xl"
+          >
+            Share Invite Link
+          </button>
+        </Card>
+      )}
 
       {/* Payment History */}
       {memberships.length > 0 && (

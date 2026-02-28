@@ -246,9 +246,12 @@ router.get('/home', async (req: Request, res: Response) => {
 router.get('/profile', async (req: Request, res: Response) => {
   try {
     const member = req.member!
-    const memberships = await Membership.find({ member: member._id })
-      .sort({ expiry_date: -1 })
-      .lean()
+    const [memberships, gym] = await Promise.all([
+      Membership.find({ member: member._id })
+        .sort({ expiry_date: -1 })
+        .lean(),
+      Gym.findById(member.gym).select('name slug').lean(),
+    ])
 
     res.json({
       member: {
@@ -264,6 +267,7 @@ router.get('/profile', async (req: Request, res: Response) => {
         badges: member.badges,
         is_active: member.is_active,
       },
+      gym: gym ? { name: gym.name, slug: gym.slug } : null,
       memberships,
     })
   } catch (err) {

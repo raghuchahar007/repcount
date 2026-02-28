@@ -50,8 +50,8 @@ export async function discoverGyms(q?: string) {
   return data
 }
 
-export async function requestJoinGym(slug: string) {
-  const { data } = await api.post(`/public/gym/${slug}/request-join`)
+export async function requestJoinGym(slug: string, referrer?: string) {
+  const { data } = await api.post(`/public/gym/${slug}/request-join`, referrer ? { referrer } : {})
   return data
 }
 
