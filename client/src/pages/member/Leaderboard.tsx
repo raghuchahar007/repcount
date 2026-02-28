@@ -71,14 +71,23 @@ function ListRow({ entry }: { entry: LeaderboardEntry }) {
   )
 }
 
+const PERIOD_TABS: { value: 'week' | 'month' | 'all'; label: string }[] = [
+  { value: 'week', label: 'This Week' },
+  { value: 'month', label: 'This Month' },
+  { value: 'all', label: 'All Time' },
+]
+
 export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [noGym, setNoGym] = useState(false)
+  const [period, setPeriod] = useState<'week' | 'month' | 'all'>('month')
 
   useEffect(() => {
-    getLeaderboard()
+    setLoading(true)
+    setError('')
+    getLeaderboard(period)
       .then((d) => setEntries((d.leaderboard || d) as LeaderboardEntry[]))
       .catch((err) => {
         if (err?.response?.data?.code === 'NO_GYM') {
@@ -88,7 +97,7 @@ export default function LeaderboardPage() {
         }
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [period])
 
   if (loading) return <LoadingSpinner text="Loading leaderboard..." />
 
@@ -115,14 +124,33 @@ export default function LeaderboardPage() {
         <h1 className="text-2xl font-bold">
           Leaderboard <span className="inline-block">🏆</span>
         </h1>
-        <p className="text-text-secondary text-sm mt-1">Top 10 &middot; This Month</p>
+        <p className="text-text-secondary text-sm mt-1">Top 10</p>
+      </div>
+
+      {/* Period tabs */}
+      <div className="flex gap-2 justify-center">
+        {PERIOD_TABS.map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setPeriod(tab.value)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+              period === tab.value
+                ? 'bg-accent-primary text-white'
+                : 'bg-bg-card border border-border-light text-text-secondary'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {entries.length === 0 ? (
         <Card>
           <div className="text-center py-8">
             <span className="text-4xl block mb-3">🏋️</span>
-            <p className="text-text-secondary text-sm">No check-ins this month yet</p>
+            <p className="text-text-secondary text-sm">
+              No check-ins {period === 'week' ? 'this week' : period === 'all' ? '' : 'this month'} yet
+            </p>
           </div>
         </Card>
       ) : (

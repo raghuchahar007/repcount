@@ -25,8 +25,8 @@ export async function joinChallenge(postId: string) {
   return data
 }
 
-export async function getLeaderboard() {
-  const { data } = await api.get('/me/leaderboard')
+export async function getLeaderboard(period = 'month') {
+  const { data } = await api.get(`/me/leaderboard?period=${period}`)
   return data
 }
 

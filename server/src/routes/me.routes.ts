@@ -178,6 +178,7 @@ function privacyName(fullName: string): string {
 // --- Schemas ---
 
 const updateProfileSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
   goal: z.enum(['weight_loss', 'muscle_gain', 'general']).optional(),
   diet_pref: z.enum(['veg', 'nonveg', 'egg']).optional(),
 }).strict()
@@ -304,6 +305,20 @@ router.put('/profile', validate(updateProfileSchema), async (req: Request, res: 
   }
 })
 
+// DELETE /leave-gym - member leaves their current gym
+router.delete('/leave-gym', async (req: Request, res: Response) => {
+  try {
+    const member = req.member!
+    member.is_active = false
+    member.user = null
+    await member.save()
+    res.json({ message: 'You have left the gym' })
+  } catch (err) {
+    console.error('DELETE /leave-gym error:', err)
+    return res.status(500).json({ error: 'Failed to leave gym' })
+  }
+})
+
 // GET /feed - gym posts with participantCount and hasJoined
 router.get('/feed', async (req: Request, res: Response) => {
   try {
@@ -375,22 +390,35 @@ router.post('/feed/:postId/join', async (req: Request, res: Response) => {
   }
 })
 
-// GET /leaderboard - top 10 by monthly attendance
+// GET /leaderboard - top 10 by attendance for a given period
 router.get('/leaderboard', async (req: Request, res: Response) => {
   try {
     const member = req.member!
     const gymId = member.gym
 
-    // Current month range
+    const period = (req.query.period as string) || 'month'
+    let startDate: Date
     const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    if (period === 'week') {
+      startDate = new Date(now)
+      startDate.setDate(now.getDate() - 7)
+    } else if (period === 'all') {
+      startDate = new Date(0)
+    } else {
+      // month (default)
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+    }
+
+    const dateFilter: Record<string, Date> = { $gte: startDate }
+    if (period !== 'all') {
+      dateFilter.$lt = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    }
 
     const leaderboard = await Attendance.aggregate([
       {
         $match: {
           gym: new Types.ObjectId(gymId.toString()),
-          check_in_date: { $gte: monthStart, $lt: monthEnd },
+          check_in_date: dateFilter,
         },
       },
       {
