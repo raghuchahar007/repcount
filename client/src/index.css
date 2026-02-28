@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@source "../src/components/**/*.{ts,tsx}";
+@source "../src/pages/**/*.{ts,tsx}";
+@source "../src/contexts/**/*.{ts,tsx}";
+
+@theme {
+  --color-bg-primary: #0a0a0a;
+  --color-bg-card: #111111;
+  --color-bg-hover: #1a1a1a;
+
+  --color-accent-orange: #ff6b35;
+  --color-accent-orange-dark: #e55a2b;
+
+  --color-status-green: #4ade80;
+  --color-status-red: #ef4444;
+  --color-status-yellow: #fbbf24;
+  --color-status-blue: #60a5fa;
+  --color-status-purple: #a855f7;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #999999;
+  --color-text-muted: #707070;
+
+  --color-border: #1a1a1a;
+  --color-border-light: #222222;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --max-width-mobile: 480px;
+}
+
+@layer base {
+  html {
+    touch-action: manipulation;
+  }
+
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button, a, [role="button"] {
+    cursor: pointer;
+  }
+}
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
