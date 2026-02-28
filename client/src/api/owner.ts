@@ -14,3 +14,6 @@ export async function rejectJoinRequest(gymId: string, leadId: string) {
   const { data } = await api.put(`/gym/${gymId}/leads/${leadId}/reject`)
   return data
 }
+
+export const convertLead = (gymId: string, leadId: string) =>
+  api.post(`/gym/${gymId}/leads/${leadId}/convert`).then(r => r.data)

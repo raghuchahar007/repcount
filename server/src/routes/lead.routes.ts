@@ -131,6 +131,47 @@ router.put(
   },
 )
 
+// POST /api/gym/:gymId/leads/:leadId/convert — Convert lead to member
+router.post(
+  '/:leadId/convert',
+  requireAuth, requireOwner, requireGymAccess,
+  async (req: Request, res: Response) => {
+    try {
+      const { leadId, gymId } = req.params
+      const lead = await Lead.findOne({ _id: leadId, gym: gymId })
+      if (!lead) return res.status(404).json({ error: 'Lead not found' })
+      if (lead.status === 'converted') return res.status(409).json({ error: 'Lead already converted' })
+
+      // Create member from lead data
+      const existing = await Member.findOne({ gym: gymId, phone: lead.phone })
+      let member
+      if (existing) {
+        member = existing
+        if (!existing.user && lead.user) {
+          existing.user = lead.user
+          await existing.save()
+        }
+      } else {
+        member = await Member.create({
+          gym: gymId,
+          user: lead.user,
+          name: lead.name,
+          phone: lead.phone,
+          goal: lead.goal || 'general',
+        })
+      }
+
+      lead.status = 'converted'
+      await lead.save()
+
+      res.json({ member, lead })
+    } catch (err: any) {
+      console.error('convert lead error:', err)
+      res.status(500).json({ error: 'Failed to convert lead' })
+    }
+  },
+)
+
 // PUT /api/gym/:gymId/leads/:leadId/reject — Reject join request
 router.put(
   '/:leadId/reject',

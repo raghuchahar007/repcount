@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { getMyGym } from '@/api/gym'
 import { getLeads, updateLead } from '@/api/leads'
+import { convertLead } from '@/api/owner'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -19,6 +20,7 @@ interface Lead {
 }
 
 type FilterType = 'all' | 'new' | 'contacted' | 'converted'
+type SourceFilter = 'all' | 'app_request' | 'referral' | 'owner_invite' | 'website'
 
 const STATUS_COLORS: Record<string, 'blue' | 'yellow' | 'green' | 'red'> = {
   new: 'blue',
@@ -34,6 +36,8 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
+  const [activeSource, setActiveSource] = useState<SourceFilter>('all')
+  const [converting, setConverting] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -53,9 +57,15 @@ export default function LeadsPage() {
   }, [])
 
   const filtered = useMemo(() => {
-    if (activeFilter === 'all') return leads
-    return leads.filter((l) => l.status === activeFilter)
-  }, [leads, activeFilter])
+    let result = leads
+    if (activeFilter !== 'all') {
+      result = result.filter((l) => l.status === activeFilter)
+    }
+    if (activeSource !== 'all') {
+      result = result.filter((l) => l.source === activeSource)
+    }
+    return result
+  }, [leads, activeFilter, activeSource])
 
   const counts = useMemo(() => {
     const c = { all: leads.length, new: 0, contacted: 0, converted: 0 }
@@ -77,6 +87,20 @@ export default function LeadsPage() {
     } catch {
       // Revert on error
       setLeads(prev)
+    }
+  }
+
+  async function handleConvert(lead: Lead) {
+    setConverting(lead._id)
+    const prev = [...leads]
+    setLeads(leads.map((l) => (l._id === lead._id ? { ...l, status: 'converted' as const } : l)))
+
+    try {
+      await convertLead(gymId, lead._id)
+    } catch {
+      setLeads(prev)
+    } finally {
+      setConverting(null)
     }
   }
 
@@ -104,6 +128,14 @@ export default function LeadsPage() {
     { value: 'converted', label: 'Converted', count: counts.converted },
   ]
 
+  const SOURCE_FILTERS: { value: SourceFilter; label: string }[] = [
+    { value: 'all', label: 'All Sources' },
+    { value: 'app_request', label: 'App Request' },
+    { value: 'referral', label: 'Referral' },
+    { value: 'owner_invite', label: 'Owner Invite' },
+    { value: 'website', label: 'Website' },
+  ]
+
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
@@ -122,6 +154,23 @@ export default function LeadsPage() {
             }`}
           >
             {f.label} ({f.count})
+          </button>
+        ))}
+      </div>
+
+      {/* Source filter chips */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {SOURCE_FILTERS.map((sf) => (
+          <button
+            key={sf.value}
+            onClick={() => setActiveSource(sf.value)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+              activeSource === sf.value
+                ? 'bg-accent-primary text-white'
+                : 'bg-bg-card border border-border-light text-text-secondary'
+            }`}
+          >
+            {sf.label}
           </button>
         ))}
       </div>
@@ -184,6 +233,17 @@ export default function LeadsPage() {
                     className="flex-1"
                   >
                     Mark Contacted
+                  </Button>
+                )}
+                {(lead.status === 'new' || lead.status === 'contacted') && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleConvert(lead)}
+                    disabled={converting === lead._id}
+                    className="flex-1"
+                  >
+                    {converting === lead._id ? 'Converting...' : 'Convert'}
                   </Button>
                 )}
               </div>
