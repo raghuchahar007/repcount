@@ -1,6 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import authRoutes from './routes/auth.routes'
+import { errorHandler } from './middleware/errorHandler'
 
 const app = express()
 
@@ -16,12 +18,10 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-// Global error handler
-app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Unhandled error:', err)
-  res.status(err.status || 500).json({
-    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message,
-  })
-})
+// Routes
+app.use('/api/auth', authRoutes)
+
+// Global error handler (must be last)
+app.use(errorHandler)
 
 export default app
