@@ -1,13 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { getMyGym } from '@/api/gym'
 import { getRenewals } from '@/api/memberships'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { todayIST, daysSince, formatCurrency, formatPhone, formatDate } from '@/utils/helpers'
 import { generateWhatsAppLink, templates } from '@/utils/whatsapp'
+
+type SortType = 'overdue' | 'name'
+
+const SORT_OPTIONS: { value: SortType; label: string }[] = [
+  { value: 'overdue', label: 'Most Overdue' },
+  { value: 'name', label: 'A-Z' },
+]
 
 interface RenewalMembership {
   _id: string
@@ -23,6 +31,8 @@ export default function RenewalsPage() {
   const [gymUpi, setGymUpi] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
+  const [sort, setSort] = useState<SortType>('overdue')
 
   useEffect(() => {
     async function load() {
@@ -62,6 +72,26 @@ export default function RenewalsPage() {
     return generateWhatsAppLink(m.member.phone, message)
   }
 
+  const displayList = useMemo(() => {
+    // Filter by search
+    let list = renewals
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter(
+        (m) =>
+          m.member.name.toLowerCase().includes(q) ||
+          m.member.phone.includes(q)
+      )
+    }
+
+    // Sort
+    return [...list].sort((a, b) => {
+      if (sort === 'name') return (a.member.name || '').localeCompare(b.member.name || '')
+      // overdue: sort by expiry_date ascending (earliest expiry = most overdue first)
+      return new Date(a.expiry_date).getTime() - new Date(b.expiry_date).getTime()
+    })
+  }, [renewals, search, sort])
+
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
@@ -74,16 +104,40 @@ export default function RenewalsPage() {
         </p>
       </div>
 
+      {/* Search */}
+      <Input
+        placeholder="Search by name or phone..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {/* Sort chips */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {SORT_OPTIONS.map((s) => (
+          <button
+            key={s.value}
+            onClick={() => setSort(s.value)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+              sort === s.value
+                ? 'bg-accent-primary text-white'
+                : 'bg-bg-card border border-border-light text-text-secondary'
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
       {/* List */}
-      {renewals.length === 0 ? (
+      {displayList.length === 0 ? (
         <Card>
           <p className="text-center text-text-muted text-sm py-6">
-            No upcoming renewals
+            {search ? 'No renewals match your search' : 'No upcoming renewals'}
           </p>
         </Card>
       ) : (
         <div className="space-y-2">
-          {renewals.map((m) => {
+          {displayList.map((m) => {
             const isOverdue = new Date(m.expiry_date) < new Date(todayIST())
             const daysOverdue = Math.max(0, daysSince(m.expiry_date))
             return (
