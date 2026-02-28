@@ -14,6 +14,7 @@ import LeadsPage from '@/pages/owner/Leads'
 import PostsPage from '@/pages/owner/Posts'
 import CreatePostPage from '@/pages/owner/CreatePost'
 import SettingsPage from '@/pages/owner/Settings'
+import MemberLayout from '@/components/layout/MemberLayout'
 import MemberHome from '@/pages/member/Home'
 
 function RootRedirect() {
@@ -49,9 +50,11 @@ export default function App() {
 
         <Route path="/m" element={
           <ProtectedRoute requiredRole="member">
-            <MemberHome />
+            <MemberLayout />
           </ProtectedRoute>
-        } />
+        }>
+          <Route index element={<MemberHome />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

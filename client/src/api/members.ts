@@ -19,3 +19,13 @@ export async function updateMember(gymId: string, memberId: string, memberData: 
   const { data } = await api.put(`/gym/${gymId}/members/${memberId}`, memberData)
   return data
 }
+
+export async function checkInMember(gymId: string, memberId: string) {
+  const { data } = await api.post(`/gym/${gymId}/attendance`, { member_id: memberId })
+  return data
+}
+
+export async function getTodayAttendance(gymId: string) {
+  const { data } = await api.get(`/gym/${gymId}/attendance`)
+  return data
+}
