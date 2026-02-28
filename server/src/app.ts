@@ -3,6 +3,11 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import authRoutes from './routes/auth.routes'
 import gymRoutes from './routes/gym.routes'
+import memberRoutes from './routes/member.routes'
+import membershipRoutes from './routes/membership.routes'
+import dashboardRoutes from './routes/dashboard.routes'
+import leadRoutes from './routes/lead.routes'
+import postRoutes from './routes/post.routes'
 import { errorHandler } from './middleware/errorHandler'
 
 const app = express()
@@ -22,6 +27,11 @@ app.get('/api/health', (_req, res) => {
 // Routes
 app.use('/api/auth', authRoutes)
 app.use('/api/gym', gymRoutes)
+app.use('/api/gym/:gymId/members', memberRoutes)
+app.use('/api/gym/:gymId/memberships', membershipRoutes)
+app.use('/api/gym/:gymId/dashboard', dashboardRoutes)
+app.use('/api/gym/:gymId/leads', leadRoutes)
+app.use('/api/gym/:gymId/posts', postRoutes)
 
 // Global error handler (must be last)
 app.use(errorHandler)
