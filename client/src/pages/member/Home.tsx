@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { QrScanner } from '@/components/shared/QrScanner'
-import { BADGE_TYPES, PLAN_TYPES } from '@/utils/constants'
+import { BADGE_TYPES, PLAN_TYPES, MOTIVATION_QUOTES } from '@/utils/constants'
 import { formatDate, daysUntil, todayIST } from '@/utils/helpers'
 
 interface HomeData {
@@ -118,6 +118,9 @@ export default function MemberHome() {
   const last30 = getLast30Days()
   const checkedInToday = attendanceSet.has(todayIST())
 
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000)
+  const dailyQuote = MOTIVATION_QUOTES[dayOfYear % MOTIVATION_QUOTES.length]
+
   // Membership info
   const isActive = membership && membership.status === 'active'
   const daysLeft = membership ? daysUntil(membership.expiry_date) : 0
@@ -140,6 +143,10 @@ export default function MemberHome() {
             <Badge variant="green">Checked in</Badge>
           )}
         </div>
+      </Card>
+
+      <Card>
+        <p className="text-sm text-text-secondary italic text-center">"{dailyQuote}"</p>
       </Card>
 
       {/* QR Check-in */}
