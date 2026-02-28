@@ -3,6 +3,7 @@ import { getFeed, joinChallenge } from '@/api/me'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { NoGymCard } from '@/components/shared/NoGymCard'
 import { POST_TYPES } from '@/utils/constants'
 import { formatDate } from '@/utils/helpers'
 
@@ -26,12 +27,19 @@ export default function FeedPage() {
   const [posts, setPosts] = useState<FeedPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [noGym, setNoGym] = useState(false)
   const [joiningId, setJoiningId] = useState<string | null>(null)
 
   useEffect(() => {
     getFeed()
       .then((data) => setPosts((data.posts || data) as FeedPost[]))
-      .catch((err) => setError(err?.response?.data?.message || 'Failed to load feed'))
+      .catch((err) => {
+        if (err?.response?.data?.code === 'NO_GYM') {
+          setNoGym(true)
+        } else {
+          setError(err?.response?.data?.message || 'Failed to load feed')
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -64,6 +72,8 @@ export default function FeedPage() {
   }
 
   if (loading) return <LoadingSpinner text="Loading feed..." />
+
+  if (noGym) return <NoGymCard feature="the gym feed" />
 
   if (error) {
     return (

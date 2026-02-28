@@ -68,7 +68,7 @@ export default function MemberHome() {
       .then((d) => setData(d as HomeData))
       .catch((err) => {
         if (err?.response?.data?.code === 'NO_GYM') {
-          navigate('/m/join-gym', { replace: true })
+          navigate('/m/discover', { replace: true })
           return
         }
         setError(err?.response?.data?.message || 'Failed to load home')

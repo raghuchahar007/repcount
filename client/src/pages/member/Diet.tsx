@@ -4,6 +4,7 @@ import { getHome } from '@/api/me'
 import { DIET_TEMPLATES, type MealPlan } from '@/utils/constants'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { NoGymCard } from '@/components/shared/NoGymCard'
 
 interface HomeData {
   member: {
@@ -17,6 +18,7 @@ export default function DietPage() {
   const [noMatch, setNoMatch] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [noGym, setNoGym] = useState(false)
 
   useEffect(() => {
     getHome()
@@ -30,11 +32,19 @@ export default function DietPage() {
           setNoMatch(true)
         }
       })
-      .catch((err) => setError(err?.response?.data?.message || 'Failed to load diet plan'))
+      .catch((err) => {
+        if (err?.response?.data?.code === 'NO_GYM') {
+          setNoGym(true)
+        } else {
+          setError(err?.response?.data?.message || 'Failed to load diet plan')
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <LoadingSpinner text="Loading your diet plan..." />
+
+  if (noGym) return <NoGymCard feature="diet plans" />
 
   if (error) {
     return (

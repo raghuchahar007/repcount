@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { NoGymCard } from '@/components/shared/NoGymCard'
 import { GOALS, DIET_PREFS, BADGE_TYPES, PLAN_TYPES } from '@/utils/constants'
 import { getInitials, formatDate, formatCurrency, formatPhone } from '@/utils/helpers'
 
@@ -38,6 +39,7 @@ export default function ProfilePage() {
   const [data, setData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [noGym, setNoGym] = useState(false)
 
   // Editable fields
   const [goal, setGoal] = useState('')
@@ -55,7 +57,13 @@ export default function ProfilePage() {
         setGoal(profileData.member.goal || '')
         setDietPref(profileData.member.diet_pref || '')
       })
-      .catch((err) => setError(err?.response?.data?.message || 'Failed to load profile'))
+      .catch((err) => {
+        if (err?.response?.data?.code === 'NO_GYM') {
+          setNoGym(true)
+        } else {
+          setError(err?.response?.data?.message || 'Failed to load profile')
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -79,6 +87,8 @@ export default function ProfilePage() {
   }
 
   if (loading) return <LoadingSpinner text="Loading profile..." />
+
+  if (noGym) return <NoGymCard feature="your profile" />
 
   if (error) {
     return (

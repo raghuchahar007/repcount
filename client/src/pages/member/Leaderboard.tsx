@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getLeaderboard } from '@/api/me'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { NoGymCard } from '@/components/shared/NoGymCard'
 
 interface LeaderboardEntry {
   rank: number
@@ -74,15 +75,24 @@ export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [noGym, setNoGym] = useState(false)
 
   useEffect(() => {
     getLeaderboard()
       .then((d) => setEntries((d.leaderboard || d) as LeaderboardEntry[]))
-      .catch((err) => setError(err?.response?.data?.message || 'Failed to load leaderboard'))
+      .catch((err) => {
+        if (err?.response?.data?.code === 'NO_GYM') {
+          setNoGym(true)
+        } else {
+          setError(err?.response?.data?.message || 'Failed to load leaderboard')
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <LoadingSpinner text="Loading leaderboard..." />
+
+  if (noGym) return <NoGymCard feature="the leaderboard" />
 
   if (error) {
     return (

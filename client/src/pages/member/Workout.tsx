@@ -4,6 +4,7 @@ import { getHome } from '@/api/me'
 import { WORKOUT_TEMPLATES, type WorkoutPlan, type WorkoutDay } from '@/utils/constants'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { NoGymCard } from '@/components/shared/NoGymCard'
 
 interface HomeData {
   member: {
@@ -46,6 +47,7 @@ export default function WorkoutPage() {
   const [noMatch, setNoMatch] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [noGym, setNoGym] = useState(false)
 
   useEffect(() => {
     getHome()
@@ -58,11 +60,19 @@ export default function WorkoutPage() {
           setNoMatch(true)
         }
       })
-      .catch((err) => setError(err?.response?.data?.message || 'Failed to load workout plan'))
+      .catch((err) => {
+        if (err?.response?.data?.code === 'NO_GYM') {
+          setNoGym(true)
+        } else {
+          setError(err?.response?.data?.message || 'Failed to load workout plan')
+        }
+      })
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <LoadingSpinner text="Loading your workout plan..." />
+
+  if (noGym) return <NoGymCard feature="workout plans" />
 
   if (error) {
     return (
