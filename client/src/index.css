@@ -5,12 +5,12 @@
 @source "../src/contexts/**/*.{ts,tsx}";
 
 @theme {
-  --color-bg-primary: #0a0a0a;
-  --color-bg-card: #111111;
-  --color-bg-hover: #1a1a1a;
+  --color-bg-primary: #0A0A0A;
+  --color-bg-card: #141414;
+  --color-bg-hover: #1E1E1E;
 
-  --color-accent-orange: #ff6b35;
-  --color-accent-orange-dark: #e55a2b;
+  --color-accent-primary: #FF3B3B;
+  --color-accent-primary-dark: #E02D2D;
 
   --color-status-green: #4ade80;
   --color-status-red: #ef4444;
@@ -18,12 +18,12 @@
   --color-status-blue: #60a5fa;
   --color-status-purple: #a855f7;
 
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #999999;
-  --color-text-muted: #707070;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #9CA3AF;
+  --color-text-muted: #6B7280;
 
-  --color-border: #1a1a1a;
-  --color-border-light: #222222;
+  --color-border: #1E1E1E;
+  --color-border-light: #2A2A2A;
 
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
