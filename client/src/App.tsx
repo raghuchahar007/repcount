@@ -14,6 +14,8 @@ import LeadsPage from '@/pages/owner/Leads'
 import PostsPage from '@/pages/owner/Posts'
 import CreatePostPage from '@/pages/owner/CreatePost'
 import SettingsPage from '@/pages/owner/Settings'
+import ChooseRole from '@/pages/ChooseRole'
+import JoinGymPage from '@/pages/member/JoinGym'
 import GymPage from '@/pages/public/GymPage'
 import MemberLayout from '@/components/layout/MemberLayout'
 import MemberHome from '@/pages/member/Home'
@@ -27,6 +29,7 @@ function RootRedirect() {
   const { user, loading } = useAuth()
   if (loading) return <LoadingSpinner />
   if (!user) return <Navigate to="/login" replace />
+  if (!user.role) return <Navigate to="/choose-role" replace />
   return <Navigate to={user.role === 'owner' ? '/owner' : '/m'} replace />
 }
 
@@ -37,6 +40,7 @@ export default function App() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/verify" element={<VerifyOtp />} />
+        <Route path="/choose-role" element={<ChooseRole />} />
 
         <Route path="/owner" element={
           <ProtectedRoute requiredRole="owner">
@@ -65,6 +69,7 @@ export default function App() {
           <Route path="workout" element={<WorkoutPage />} />
           <Route path="feed" element={<FeedPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="join-gym" element={<JoinGymPage />} />
         </Route>
 
         <Route path="/gym/:slug" element={<GymPage />} />

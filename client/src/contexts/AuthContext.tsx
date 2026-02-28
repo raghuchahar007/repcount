@@ -5,7 +5,7 @@ import { setAccessToken } from '@/api/axios'
 interface AuthUser {
   id: string
   phone: string
-  role: 'owner' | 'member' | 'admin'
+  role: 'owner' | 'member' | 'admin' | null
   full_name: string | null
 }
 

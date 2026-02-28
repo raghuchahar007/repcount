@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "npx nodemon --exec 'npx ts-node' src/server.ts",
     "build": "npx tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "seed": "npx ts-node src/scripts/seed.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

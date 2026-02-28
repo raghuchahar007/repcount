@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { getHome } from '@/api/me'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -57,11 +57,18 @@ export default function MemberHome() {
   const [data, setData] = useState<HomeData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const navigate = useNavigate()
 
   useEffect(() => {
     getHome()
       .then((d) => setData(d as HomeData))
-      .catch((err) => setError(err?.response?.data?.message || 'Failed to load home'))
+      .catch((err) => {
+        if (err?.response?.data?.code === 'NO_GYM') {
+          navigate('/m/join-gym', { replace: true })
+          return
+        }
+        setError(err?.response?.data?.message || 'Failed to load home')
+      })
       .finally(() => setLoading(false))
   }, [])
 

@@ -1,4 +1,8 @@
-const TEST_PHONE = process.env.TEST_PHONE || '+919999999999'
+const TEST_PHONES = new Set(
+  (process.env.TEST_PHONES || process.env.TEST_PHONE || '+919999999999')
+    .split(',')
+    .map(p => p.trim())
+)
 const TEST_OTP = process.env.TEST_OTP || '123456'
 
 const otpStore = new Map<string, { otp: string; expiresAt: number }>()
@@ -8,7 +12,7 @@ export function generateOtp(): string {
 }
 
 export async function sendOtp(phone: string): Promise<{ success: boolean; message: string }> {
-  if (phone === TEST_PHONE) {
+  if (TEST_PHONES.has(phone)) {
     return { success: true, message: 'OTP sent (test mode)' }
   }
   const otp = generateOtp()
@@ -18,7 +22,7 @@ export async function sendOtp(phone: string): Promise<{ success: boolean; messag
 }
 
 export async function verifyOtp(phone: string, otp: string): Promise<boolean> {
-  if (phone === TEST_PHONE && otp === TEST_OTP) {
+  if (TEST_PHONES.has(phone) && otp === TEST_OTP) {
     return true
   }
   const stored = otpStore.get(phone)

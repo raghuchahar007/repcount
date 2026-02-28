@@ -18,6 +18,10 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/login" replace />
   }
 
+  if (!user.role) {
+    return <Navigate to="/choose-role" replace />
+  }
+
   if (requiredRole && user.role !== requiredRole) {
     return <Navigate to={user.role === 'owner' ? '/owner' : '/m'} replace />
   }

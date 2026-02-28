@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { User } from '../models/User'
 import { Member } from '../models/Member'
 import { sendOtp as sendOtpService, verifyOtp as verifyOtpService } from '../services/otp.service'
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../services/token.service'
+import { signAccessToken, signRefreshToken, verifyRefreshToken, verifyAccessToken } from '../services/token.service'
 import { validate } from '../middleware/validate'
 
 const router = Router()
@@ -37,9 +37,11 @@ router.post('/verify-otp', validate(verifyOtpSchema), async (req: Request, res: 
       return res.status(400).json({ error: 'Invalid or expired OTP' })
     }
 
+    let isNewUser = false
     let user = await User.findOne({ phone })
     if (!user) {
-      user = await User.create({ phone, role: 'member' })
+      user = await User.create({ phone })
+      isNewUser = true
     }
 
     // Auto-link member record if exists
@@ -54,7 +56,7 @@ router.post('/verify-otp', validate(verifyOtpSchema), async (req: Request, res: 
     const tokenPayload = {
       userId: user._id.toString(),
       phone: user.phone,
-      role: user.role,
+      role: user.role || '',
     }
 
     const accessToken = signAccessToken(tokenPayload)
@@ -69,6 +71,7 @@ router.post('/verify-otp', validate(verifyOtpSchema), async (req: Request, res: 
     })
 
     res.json({
+      isNewUser,
       accessToken,
       user: {
         id: user._id,
@@ -80,6 +83,59 @@ router.post('/verify-otp', validate(verifyOtpSchema), async (req: Request, res: 
   } catch (err: any) {
     console.error('verify-otp error:', err)
     res.status(500).json({ error: 'Failed to verify OTP' })
+  }
+})
+
+// PUT /api/auth/set-role
+const setRoleSchema = z.object({
+  role: z.enum(['owner', 'member']),
+})
+
+router.put('/set-role', validate(setRoleSchema), async (req: Request, res: Response) => {
+  const authHeader = req.headers.authorization
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Access token required' })
+  }
+  try {
+    const payload = verifyAccessToken(authHeader.split(' ')[1])
+    const user = await User.findById(payload.userId)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    if (user.role) {
+      return res.status(400).json({ error: 'Role already set' })
+    }
+
+    const newRole: string = req.body.role
+    user.role = newRole as 'owner' | 'member'
+    await user.save()
+
+    const tokenPayload = { userId: user._id.toString(), phone: user.phone, role: newRole }
+    const accessToken = signAccessToken(tokenPayload)
+    const refreshToken = signRefreshToken(tokenPayload)
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    })
+
+    // If member, auto-link existing Member record
+    if (newRole === 'member') {
+      const tenDigitPhone = user.phone.replace('+91', '')
+      await Member.updateOne(
+        { phone: tenDigitPhone, user: null },
+        { $set: { user: user._id } }
+      )
+    }
+
+    res.json({
+      accessToken,
+      user: { id: user._id, phone: user.phone, role: newRole, full_name: user.full_name },
+    })
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' })
   }
 })
 
@@ -100,7 +156,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
     const tokenPayload = {
       userId: user._id.toString(),
       phone: user.phone,
-      role: user.role,
+      role: user.role || '',
     }
 
     const accessToken = signAccessToken(tokenPayload)

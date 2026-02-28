@@ -15,10 +15,14 @@ export function getAccessToken(): string | null {
   return accessToken
 }
 
-// Attach access token to every request
+// Attach access token and active gym to every request
 api.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
+  }
+  const activeGym = localStorage.getItem('repcount_active_gym')
+  if (activeGym) {
+    config.headers['x-gym-id'] = activeGym
   }
   return config
 })

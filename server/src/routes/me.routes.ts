@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/auth'
 import { requireMember } from '../middleware/roleGuard'
 import { requireMemberContext } from '../middleware/memberContext'
 import { validate } from '../middleware/validate'
+import { User } from '../models/User'
 import { Member } from '../models/Member'
 import { Membership } from '../models/Membership'
 import { Attendance } from '../models/Attendance'
@@ -14,6 +15,66 @@ import { Gym } from '../models/Gym'
 
 const router = Router()
 
+// --- Routes that need auth but NOT member context ---
+
+// GET /gyms - list all gyms where member has records
+router.get('/gyms', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const members = await Member.find({ user: req.user!.userId })
+      .populate('gym', 'name slug logo_url city')
+      .lean()
+    const gyms = members.map(m => ({
+      memberId: m._id,
+      gym: m.gym,
+      joinDate: m.join_date,
+    }))
+    res.json(gyms)
+  } catch (err) {
+    console.error('My gyms error:', err)
+    res.status(500).json({ error: 'Failed to load gyms' })
+  }
+})
+
+const joinGymSchema = z.object({
+  slug: z.string().min(1, 'Gym slug required'),
+})
+
+// POST /join-gym - member joins a gym by slug
+router.post('/join-gym', requireAuth, validate(joinGymSchema), async (req: Request, res: Response) => {
+  try {
+    const gym = await Gym.findOne({ slug: req.body.slug }).lean()
+    if (!gym) return res.status(404).json({ error: 'Gym not found' })
+
+    const phone = req.user!.phone.replace('+91', '')
+    const existing = await Member.findOne({ gym: gym._id, phone })
+    if (existing) {
+      if (!existing.user) {
+        existing.user = new Types.ObjectId(req.user!.userId)
+        await existing.save()
+      }
+      return res.json({ message: 'Already a member', memberId: existing._id })
+    }
+
+    const user = await User.findById(req.user!.userId)
+    const member = await Member.create({
+      user: req.user!.userId,
+      gym: gym._id,
+      name: user?.full_name || phone,
+      phone,
+      goal: 'general',
+      diet_pref: 'veg',
+      budget: 'medium',
+    })
+
+    res.status(201).json({ message: 'Joined gym', memberId: member._id })
+  } catch (err: any) {
+    if (err.code === 11000) return res.status(409).json({ error: 'Already a member of this gym' })
+    console.error('Join gym error:', err)
+    res.status(500).json({ error: 'Failed to join gym' })
+  }
+})
+
+// --- Routes that need full member context ---
 router.use(requireAuth, requireMember, requireMemberContext)
 
 // --- Helpers ---

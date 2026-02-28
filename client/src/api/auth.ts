@@ -21,3 +21,9 @@ export async function refreshToken() {
   setAccessToken(data.accessToken)
   return data
 }
+
+export async function setRole(role: 'owner' | 'member') {
+  const { data } = await api.put('/auth/set-role', { role })
+  setAccessToken(data.accessToken)
+  return data
+}

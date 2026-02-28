@@ -31,7 +31,9 @@ export default function VerifyOtp() {
     try {
       const data = await verifyOtp(phone, otpString)
       login(data.accessToken, data.user)
-      if (data.user.role === 'owner') {
+      if (data.isNewUser || !data.user.role) {
+        navigate('/choose-role', { replace: true })
+      } else if (data.user.role === 'owner') {
         navigate('/owner', { replace: true })
       } else {
         navigate('/m', { replace: true })

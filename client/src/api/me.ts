@@ -29,3 +29,13 @@ export async function getLeaderboard() {
   const { data } = await api.get('/me/leaderboard')
   return data
 }
+
+export async function joinGym(slug: string) {
+  const { data } = await api.post('/me/join-gym', { slug })
+  return data
+}
+
+export async function getMyGyms() {
+  const { data } = await api.get('/me/gyms')
+  return data
+}
