@@ -4,7 +4,7 @@
 
 set -e
 
-echo "=== RepCount Server Setup ==="
+echo "=== GymRep Server Setup ==="
 
 # 1. Update system
 apt update && apt upgrade -y
@@ -20,11 +20,11 @@ apt install -y nginx
 npm install -g pm2
 
 # 5. Create app user
-id -u repcount &>/dev/null || useradd -m -s /bin/bash repcount
+id -u gymrep &>/dev/null || useradd -m -s /bin/bash gymrep
 
 # 6. Create app directory
-mkdir -p /var/www/repcount
-chown repcount:repcount /var/www/repcount
+mkdir -p /var/www/gymrep
+chown gymrep:gymrep /var/www/gymrep
 
 # 7. Firewall
 ufw allow OpenSSH
@@ -32,14 +32,14 @@ ufw allow 'Nginx Full'
 ufw --force enable
 
 # 8. Nginx config (HTTP only — add SSL later with domain)
-cat > /etc/nginx/sites-available/repcount <<'NGINX'
+cat > /etc/nginx/sites-available/gymrep <<'NGINX'
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
     server_name _;
 
     # Frontend static files
-    root /var/www/repcount/client/dist;
+    root /var/www/gymrep/client/dist;
     index index.html;
 
     # API proxy
@@ -62,13 +62,13 @@ server {
 }
 NGINX
 
-ln -sf /etc/nginx/sites-available/repcount /etc/nginx/sites-enabled/repcount
+ln -sf /etc/nginx/sites-available/gymrep /etc/nginx/sites-enabled/gymrep
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
 
 # 9. PM2 startup
-pm2 startup systemd -u repcount --hp /home/repcount
-systemctl enable pm2-repcount
+pm2 startup systemd -u gymrep --hp /home/gymrep
+systemctl enable pm2-gymrep
 
 echo ""
 echo "=== Setup complete ==="

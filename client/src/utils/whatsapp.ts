@@ -1,7 +1,7 @@
 export const templates = {
   renewal_reminder: (memberName: string, expiryDate: string, gymName: string, upiId?: string) => {
     const upiLine = upiId ? `\nUPI: ${upiId}` : ''
-    return `Namaste ${memberName} ji! 🙏\n\nAapki ${gymName} membership ${expiryDate} ko expire ho rahi hai.\n\nPlease renewal ke liye gym aayein ya online payment karein.${upiLine}\n\nDhanyavaad! 💪\n— ${gymName} (via RepCount)`
+    return `Namaste ${memberName} ji! 🙏\n\nAapki ${gymName} membership ${expiryDate} ko expire ho rahi hai.\n\nPlease renewal ke liye gym aayein ya online payment karein.${upiLine}\n\nDhanyavaad! 💪\n— ${gymName} (via GymRep)`
   },
 
   overdue_payment: (memberName: string, days: number, amount: number, gymName: string) =>
@@ -11,7 +11,7 @@ export const templates = {
     `Hi ${memberName}! 👋\n\n${gymName} mein aapko dekhkar ${lastDays} din ho gaye. Sab theek hai?\n\nAapki fitness goal ke liye consistency bohot zaroori hai. Kal milte hain gym mein! 💪\n\n— ${gymName}`,
 
   welcome: (memberName: string, gymName: string, appLink: string) =>
-    `Welcome to ${gymName}, ${memberName}! 🎉\n\nAapka RepCount account ready hai. Yahan se apna diet plan, workout plan aur attendance dekh sakte hain:\n\n${appLink}\n\n💪 Let's start your fitness journey!\n\n— ${gymName}`,
+    `Welcome to ${gymName}, ${memberName}! 🎉\n\nAapka GymRep account ready hai. Yahan se apna diet plan, workout plan aur attendance dekh sakte hain:\n\n${appLink}\n\n💪 Let's start your fitness journey!\n\n— ${gymName}`,
 
   birthday: (memberName: string, gymName: string) =>
     `Happy Birthday ${memberName}! 🎂🎉\n\n${gymName} ki taraf se aapko bohot bohot badhai!\n\nAaj ka din special hai — enjoy karein aur kal gym mein milte hain! 💪\n\n— ${gymName}`,

@@ -62,7 +62,7 @@ mkdir -p server/src/{models,routes,middleware,services,utils}
 
 ```json
 {
-  "name": "repcount-server",
+  "name": "gymrep-server",
   "version": "1.0.0",
   "scripts": {
     "dev": "npx nodemon --exec npx ts-node --esm src/server.ts",
@@ -197,7 +197,7 @@ start()
 ```env
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/repcount
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/gymrep
 JWT_SECRET=your-secret-key-min-32-chars
 JWT_REFRESH_SECRET=different-secret-key-min-32-chars
 JWT_EXPIRY=15m
@@ -565,7 +565,7 @@ mkdir -p client/public
 
 ```json
 {
-  "name": "repcount-client",
+  "name": "gymrep-client",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -673,7 +673,7 @@ export default defineConfig({
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0a0a" />
   <link rel="manifest" href="/manifest.json" />
-  <title>RepCount — Your Gym, Upgraded</title>
+  <title>GymRep — Your Gym, Upgraded</title>
 </head>
 <body>
   <div id="root"></div>
@@ -773,7 +773,7 @@ export default function App() {
         <Route path="/" element={
           <div className="flex items-center justify-center min-h-screen">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-accent-orange mb-2">RepCount</h1>
+              <h1 className="text-2xl font-bold text-accent-orange mb-2">GymRep</h1>
               <p className="text-text-secondary">Your Gym, Upgraded</p>
               <p className="text-text-muted text-sm mt-4">MERN Stack — M0 Complete</p>
             </div>
@@ -795,8 +795,8 @@ export default function App() {
 
 ```json
 {
-  "name": "RepCount",
-  "short_name": "RepCount",
+  "name": "GymRep",
+  "short_name": "GymRep",
   "description": "Your Gym, Upgraded",
   "start_url": "/",
   "display": "standalone",
@@ -909,7 +909,7 @@ Copy the file as-is — no changes needed.
 **Step 4: Create client/src/utils/types.ts** (adapted for MongoDB — string IDs, Date fields)
 
 ```typescript
-// Types for RepCount MERN stack
+// Types for GymRep MERN stack
 // IDs are MongoDB ObjectId strings
 
 export interface User {
@@ -1281,7 +1281,7 @@ git commit -m "feat(client): Axios instance with JWT interceptors + auth API ske
 
 ```json
 {
-  "name": "repcount",
+  "name": "gymrep",
   "version": "2.0.0",
   "private": true,
   "scripts": {
@@ -1331,8 +1331,8 @@ cat > server/.env << 'EOF'
 PORT=5000
 NODE_ENV=development
 MONGODB_URI=<USER_MUST_SET_THIS>
-JWT_SECRET=repcount-dev-jwt-secret-change-in-prod
-JWT_REFRESH_SECRET=repcount-dev-refresh-secret-change-in-prod
+JWT_SECRET=gymrep-dev-jwt-secret-change-in-prod
+JWT_REFRESH_SECRET=gymrep-dev-refresh-secret-change-in-prod
 JWT_EXPIRY=15m
 JWT_REFRESH_EXPIRY=7d
 CLIENT_URL=http://localhost:5173
@@ -1365,7 +1365,7 @@ curl http://localhost:5000/api/health
 **Step 7: Verify React renders**
 
 Open http://localhost:5173 in browser.
-Expected: "RepCount" heading with "Your Gym, Upgraded" subtitle on dark background.
+Expected: "GymRep" heading with "Your Gym, Upgraded" subtitle on dark background.
 
 **Step 8: Commit everything**
 
@@ -1384,6 +1384,6 @@ After all tasks are complete, verify:
 2. `cd client && npx tsc --noEmit` → 0 errors
 3. `npm run dev` starts both server (port 5000) and client (port 5173)
 4. `curl localhost:5000/api/health` returns `{"status":"ok",...}`
-5. Browser at `localhost:5173` shows RepCount splash page with dark theme + orange accent
+5. Browser at `localhost:5173` shows GymRep splash page with dark theme + orange accent
 
 If all pass → M0 is complete. Save memory and proceed to M1 (Auth Flow).

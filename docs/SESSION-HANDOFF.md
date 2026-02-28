@@ -21,7 +21,7 @@
 - Skeleton loader components (`SkeletonDashboard`, `SkeletonList`, `SkeletonCard`)
 
 **Navigation & Auth fixes:**
-- RepCount logo clickable in both OwnerLayout and MemberLayout
+- GymRep logo clickable in both OwnerLayout and MemberLayout
 - Gym selector uses React navigation instead of `window.location.reload()`
 - VerifyOTP: resend OTP with 30s cooldown, masked phone display, redirect on refresh
 - Login page: "Don't have an account? Register" wording
@@ -97,7 +97,7 @@
 
 ### Project Structure
 ```
-repcount/
+gymrep/
 ├── client/          # React 18 + Vite + Tailwind CSS v4
 │   ├── src/
 │   │   ├── api/         # API layer (auth, members, me, owner, posts, etc.)

@@ -1,5 +1,5 @@
 {
-  "name": "repcount-server",
+  "name": "gymrep-server",
   "version": "1.0.0",
   "scripts": {
     "dev": "npx nodemon --exec 'npx ts-node' src/server.ts",

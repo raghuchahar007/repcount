@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
   }
-  const activeGym = localStorage.getItem('repcount_active_gym')
+  const activeGym = localStorage.getItem('gymrep_active_gym')
   if (activeGym) {
     config.headers['x-gym-id'] = activeGym
   }

@@ -238,24 +238,24 @@ git commit -m "feat: add skeleton loader components"
 
 **Step 1: OwnerLayout — make logo a link**
 
-In `OwnerLayout.tsx`, import `Link` from `react-router-dom` and replace the header `<div>` containing "RepCount" with:
+In `OwnerLayout.tsx`, import `Link` from `react-router-dom` and replace the header `<div>` containing "GymRep" with:
 
 ```tsx
 import { Link, Outlet } from 'react-router-dom'
 
-// Replace the RepCount text div with:
+// Replace the GymRep text div with:
 <Link to="/owner" className="flex flex-col">
-  <span className="text-lg font-bold text-text-primary">RepCount</span>
+  <span className="text-lg font-bold text-text-primary">GymRep</span>
   <span className="text-[10px] text-text-muted -mt-1">Owner Panel</span>
 </Link>
 ```
 
 **Step 2: MemberLayout — make logo a link**
 
-In `MemberLayout.tsx`, replace the "RepCount" text with:
+In `MemberLayout.tsx`, replace the "GymRep" text with:
 
 ```tsx
-<Link to="/m" className="text-lg font-bold text-text-primary">RepCount</Link>
+<Link to="/m" className="text-lg font-bold text-text-primary">GymRep</Link>
 ```
 
 **Step 3: Verify and commit**
@@ -263,7 +263,7 @@ In `MemberLayout.tsx`, replace the "RepCount" text with:
 ```bash
 cd client && npx tsc --noEmit
 git add client/src/components/layout/OwnerLayout.tsx client/src/components/layout/MemberLayout.tsx
-git commit -m "fix: make RepCount logo clickable in both layouts"
+git commit -m "fix: make GymRep logo clickable in both layouts"
 ```
 
 ---
@@ -1008,9 +1008,9 @@ git commit -m "feat: session timeout warning 5 min before expiry"
 **Step 1: Build both projects**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount/server && npx tsc --noEmit
-cd /Users/raghuchahar/Desktop/repcount/client && npx tsc --noEmit
-cd /Users/raghuchahar/Desktop/repcount/client && npx vite build
+cd /Users/raghuchahar/Desktop/gymrep/server && npx tsc --noEmit
+cd /Users/raghuchahar/Desktop/gymrep/client && npx tsc --noEmit
+cd /Users/raghuchahar/Desktop/gymrep/client && npx vite build
 ```
 
 **Step 2: Fix any remaining TypeScript errors**

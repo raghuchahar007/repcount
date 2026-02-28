@@ -1,6 +1,6 @@
 {
-  "name": "RepCount",
-  "short_name": "RepCount",
+  "name": "GymRep",
+  "short_name": "GymRep",
   "description": "Your Gym, Upgraded",
   "start_url": "/",
   "display": "standalone",

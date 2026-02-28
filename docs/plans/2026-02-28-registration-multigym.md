@@ -341,7 +341,7 @@ export default function ChooseRole() {
     <div className="min-h-screen flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-text-primary mb-2">Welcome to RepCount</h1>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">Welcome to GymRep</h1>
           <p className="text-text-secondary text-sm">How will you use the app?</p>
         </div>
 
@@ -443,13 +443,13 @@ export async function getMyGyms() {
 **4d. `MemberLayout.tsx`** — gym switcher:
 - On mount, call `getMyGyms()`
 - If 2+ gyms: show dropdown in header to switch active gym
-- Store active gymId in localStorage key `repcount_active_gym`
+- Store active gymId in localStorage key `gymrep_active_gym`
 - Pass gymId as `x-gym-id` header on all member API calls
 
 To pass gymId on all requests, add an axios request interceptor in `me.ts` or update `axios.ts`:
 ```typescript
 // In axios.ts request interceptor, add:
-const activeGym = localStorage.getItem('repcount_active_gym')
+const activeGym = localStorage.getItem('gymrep_active_gym')
 if (activeGym) {
   config.headers['x-gym-id'] = activeGym
 }
@@ -573,7 +573,7 @@ Add npm script in `server/package.json`:
 
 **Run:** `cd server && npm run seed`
 
-**Verify:** Check data in MongoDB: `mongosh repcount --eval "db.users.countDocuments()"` should show 8 users.
+**Verify:** Check data in MongoDB: `mongosh gymrep --eval "db.users.countDocuments()"` should show 8 users.
 
 **Commit:** `feat(server): seed script with test users, gyms, members, attendance`
 

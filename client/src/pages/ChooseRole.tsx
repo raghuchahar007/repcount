@@ -30,7 +30,7 @@ export default function ChooseRole() {
     <div className="min-h-screen flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-text-primary mb-2">Welcome to RepCount</h1>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">Welcome to GymRep</h1>
           <p className="text-text-secondary text-sm">How will you use the app?</p>
         </div>
 

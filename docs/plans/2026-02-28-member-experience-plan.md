@@ -860,7 +860,7 @@ In Profile.tsx, after the badges section, add a "Refer a Friend" card. The membe
       onClick={() => {
         const url = `${window.location.origin}/gym/${data.gym.slug}?ref=${data.member._id}`
         if (navigator.share) {
-          navigator.share({ title: `Join ${data.gym.name}`, text: 'Check out my gym on RepCount!', url })
+          navigator.share({ title: `Join ${data.gym.name}`, text: 'Check out my gym on GymRep!', url })
         } else {
           navigator.clipboard.writeText(url)
         }

@@ -45,7 +45,7 @@ export default function Register() {
     <div className="min-h-screen flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-accent-primary mb-2">RepCount</h1>
+          <h1 className="text-3xl font-bold text-accent-primary mb-2">GymRep</h1>
           <p className="text-text-secondary">Create your account</p>
         </div>
 

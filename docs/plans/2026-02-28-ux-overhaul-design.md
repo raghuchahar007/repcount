@@ -7,8 +7,8 @@
 ## 1. Navigation & Global UX
 
 ### 1a. Clickable Logo
-- OwnerLayout: "RepCount" links to `/owner`
-- MemberLayout: "RepCount" links to `/m`
+- OwnerLayout: "GymRep" links to `/owner`
+- MemberLayout: "GymRep" links to `/m`
 
 ### 1b. Gym Selector Fix
 - Replace `window.location.reload()` with React state update

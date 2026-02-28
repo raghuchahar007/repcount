@@ -259,7 +259,7 @@ export default function SettingsPage() {
           <div className="flex flex-col items-center py-4">
             <div className="bg-white p-4 rounded-2xl">
               <QRCodeSVG
-                value={`repcount:checkin:${gymId}`}
+                value={`gymrep:checkin:${gymId}`}
                 size={200}
                 level="M"
               />

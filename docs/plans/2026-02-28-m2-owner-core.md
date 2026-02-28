@@ -121,13 +121,13 @@ app.use('/api/gym', gymRoutes)
 
 **Step 3: Verify TypeScript compiles**
 
-Run: `cd /Users/raghuchahar/Desktop/repcount/server && npx tsc --noEmit`
+Run: `cd /Users/raghuchahar/Desktop/gymrep/server && npx tsc --noEmit`
 Expected: 0 errors
 
 **Step 4: Commit**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 git add server/src/routes/gym.routes.ts server/src/app.ts
 git commit -m "feat(server): gym CRUD routes (create, get mine, get by id, update)"
 ```
@@ -343,12 +343,12 @@ app.use('/api/gym/:gymId/members', memberRoutes)
 
 **Step 3: Verify TypeScript compiles**
 
-Run: `cd /Users/raghuchahar/Desktop/repcount/server && npx tsc --noEmit`
+Run: `cd /Users/raghuchahar/Desktop/gymrep/server && npx tsc --noEmit`
 
 **Step 4: Commit**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 git add server/src/routes/member.routes.ts server/src/app.ts
 git commit -m "feat(server): member CRUD routes (list with memberships, add with payment, get detail, update)"
 ```
@@ -753,12 +753,12 @@ app.use('/api/gym/:gymId/posts', postRoutes)
 
 **Step 6: Verify TypeScript compiles**
 
-Run: `cd /Users/raghuchahar/Desktop/repcount/server && npx tsc --noEmit`
+Run: `cd /Users/raghuchahar/Desktop/gymrep/server && npx tsc --noEmit`
 
 **Step 7: Commit**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 git add server/src/routes/membership.routes.ts server/src/routes/dashboard.routes.ts server/src/routes/lead.routes.ts server/src/routes/post.routes.ts server/src/app.ts
 git commit -m "feat(server): membership, dashboard, lead, post routes"
 ```
@@ -776,7 +776,7 @@ git commit -m "feat(server): membership, dashboard, lead, post routes"
 - Create: `client/src/components/layout/OwnerLayout.tsx`
 - Modify: `client/src/App.tsx` (add OwnerLayout wrapper + route stubs)
 
-**Context:** Create Axios API wrappers for all M2 endpoints. Create an OwnerLayout component with header ("RepCount" / "Owner Panel") and BottomNav. Update App.tsx to wrap all `/owner/*` routes in OwnerLayout and add route stubs for each page.
+**Context:** Create Axios API wrappers for all M2 endpoints. Create an OwnerLayout component with header ("GymRep" / "Owner Panel") and BottomNav. Update App.tsx to wrap all `/owner/*` routes in OwnerLayout and add route stubs for each page.
 
 **Step 1: Create API files**
 
@@ -902,7 +902,7 @@ export default function OwnerLayout() {
     <div className="pb-20">
       <header className="sticky top-0 z-40 bg-bg-primary border-b border-border px-4 py-3 pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold text-accent-orange">RepCount</h1>
+          <h1 className="text-lg font-bold text-accent-orange">GymRep</h1>
           <span className="text-xs text-text-secondary">Owner Panel</span>
         </div>
       </header>
@@ -1043,12 +1043,12 @@ export default function SettingsPage() {
 
 **Step 5: Verify both compile**
 
-Run: `cd /Users/raghuchahar/Desktop/repcount/server && npx tsc --noEmit && cd ../client && npx tsc --noEmit`
+Run: `cd /Users/raghuchahar/Desktop/gymrep/server && npx tsc --noEmit && cd ../client && npx tsc --noEmit`
 
 **Step 6: Commit**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 git add client/src/api/gym.ts client/src/api/members.ts client/src/api/memberships.ts client/src/api/leads.ts client/src/api/posts.ts client/src/components/layout/OwnerLayout.tsx client/src/App.tsx client/src/pages/owner/
 git commit -m "feat(client): owner API layer, OwnerLayout, nested routes with page stubs"
 ```
@@ -1089,12 +1089,12 @@ Replace `client/src/pages/owner/Settings.tsx` with the full port. Use `getMyGym(
 
 **Step 3: Verify client compiles**
 
-Run: `cd /Users/raghuchahar/Desktop/repcount/client && npx tsc --noEmit`
+Run: `cd /Users/raghuchahar/Desktop/gymrep/client && npx tsc --noEmit`
 
 **Step 4: Commit**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 git add client/src/pages/owner/Dashboard.tsx client/src/pages/owner/Settings.tsx
 git commit -m "feat(client): owner Dashboard + Settings pages (ported from Next.js)"
 ```
@@ -1134,12 +1134,12 @@ Full port: member header card (name, phone, goal badge, status badge), quick act
 
 **Step 4: Verify client compiles**
 
-Run: `cd /Users/raghuchahar/Desktop/repcount/client && npx tsc --noEmit`
+Run: `cd /Users/raghuchahar/Desktop/gymrep/client && npx tsc --noEmit`
 
 **Step 5: Commit**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 git add client/src/pages/owner/Members.tsx client/src/pages/owner/AddMember.tsx client/src/pages/owner/MemberDetail.tsx
 git commit -m "feat(client): Members list, Add Member, Member Detail pages"
 ```
@@ -1182,12 +1182,12 @@ Full port using `createPost(gymId, data)`. Post type grid, title, body, conditio
 
 **Step 5: Verify client compiles**
 
-Run: `cd /Users/raghuchahar/Desktop/repcount/client && npx tsc --noEmit`
+Run: `cd /Users/raghuchahar/Desktop/gymrep/client && npx tsc --noEmit`
 
 **Step 6: Commit**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 git add client/src/pages/owner/Renewals.tsx client/src/pages/owner/Leads.tsx client/src/pages/owner/Posts.tsx client/src/pages/owner/CreatePost.tsx
 git commit -m "feat(client): Renewals, Leads, Posts, CreatePost pages"
 ```
@@ -1203,7 +1203,7 @@ git commit -m "feat(client): Renewals, Leads, Posts, CreatePost pages"
 **Step 1: Start servers**
 
 ```bash
-cd /Users/raghuchahar/Desktop/repcount
+cd /Users/raghuchahar/Desktop/gymrep
 # Kill any existing processes on ports 5001/5173
 lsof -ti:5001 | xargs kill -9 2>/dev/null
 npm run dev
@@ -1218,7 +1218,7 @@ VERIFY=$(curl -s -X POST http://localhost:5001/api/auth/verify-otp -H "Content-T
 TOKEN=$(echo $VERIFY | python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])")
 
 # Promote to owner in MongoDB
-mongosh repcount --quiet --eval 'db.users.updateOne({phone:"+919999999999"},{$set:{role:"owner"}})'
+mongosh gymrep --quiet --eval 'db.users.updateOne({phone:"+919999999999"},{$set:{role:"owner"}})'
 
 # Refresh to get new token with owner role
 REFRESH=$(curl -s -X POST http://localhost:5001/api/auth/refresh -b /tmp/rc_cookies.txt -c /tmp/rc_cookies.txt)

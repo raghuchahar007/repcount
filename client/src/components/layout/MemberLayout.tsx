@@ -13,7 +13,7 @@ export default function MemberLayout() {
   const navigate = useNavigate()
   const [gyms, setGyms] = useState<GymInfo[]>([])
   const [activeGymId, setActiveGymId] = useState<string>(
-    localStorage.getItem('repcount_active_gym') || ''
+    localStorage.getItem('gymrep_active_gym') || ''
   )
 
   useEffect(() => {
@@ -24,14 +24,14 @@ export default function MemberLayout() {
         if (!activeGymId && data.length > 0) {
           const firstGymId = data[0].gym._id
           setActiveGymId(firstGymId)
-          localStorage.setItem('repcount_active_gym', firstGymId)
+          localStorage.setItem('gymrep_active_gym', firstGymId)
         }
       })
       .catch(() => {})
   }, [])
 
   function handleGymSwitch(gymId: string) {
-    localStorage.setItem('repcount_active_gym', gymId)
+    localStorage.setItem('gymrep_active_gym', gymId)
     setActiveGymId(gymId)
     navigate('/m')
   }
@@ -42,7 +42,7 @@ export default function MemberLayout() {
     <div className="pb-20">
       <header className="sticky top-0 z-40 bg-bg-primary border-b border-border px-4 py-3 pt-[env(safe-area-inset-top)]">
         <div className="flex items-center justify-between">
-          <Link to="/m" className="text-lg font-bold text-accent-primary">RepCount</Link>
+          <Link to="/m" className="text-lg font-bold text-accent-primary">GymRep</Link>
           {gyms.length > 1 ? (
             <select
               value={activeGymId}

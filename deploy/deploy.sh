@@ -1,14 +1,14 @@
 #!/bin/bash
-# Deploy RepCount to Vultr server
+# Deploy GymRep to Vultr server
 # Usage: ./deploy/deploy.sh YOUR_SERVER_IP
 
 set -e
 
 SERVER_IP="${1:?Usage: ./deploy/deploy.sh SERVER_IP}"
 SERVER_USER="root"
-APP_DIR="/var/www/repcount"
+APP_DIR="/var/www/gymrep"
 
-echo "=== Deploying RepCount to $SERVER_IP ==="
+echo "=== Deploying GymRep to $SERVER_IP ==="
 
 # 1. Build client
 echo ">> Building client..."
@@ -38,7 +38,7 @@ rsync -avz --delete \
 # 4. Install server deps & restart
 echo ">> Installing deps & restarting..."
 ssh ${SERVER_USER}@${SERVER_IP} << 'REMOTE'
-cd /var/www/repcount/server
+cd /var/www/gymrep/server
 
 # Install production deps only
 npm install --omit=dev
@@ -46,15 +46,15 @@ npm install --omit=dev
 # Create .env if missing
 if [ ! -f .env ]; then
   echo "WARNING: No .env file found!"
-  echo "Create one at /var/www/repcount/server/.env"
+  echo "Create one at /var/www/gymrep/server/.env"
   echo "See .env.example for required variables"
 fi
 
 # Set ownership
-chown -R repcount:repcount /var/www/repcount
+chown -R gymrep:gymrep /var/www/gymrep
 
 # Start/restart with PM2
-su - repcount -c "cd /var/www/repcount/server && pm2 delete repcount 2>/dev/null; pm2 start dist/server.js --name repcount && pm2 save"
+su - gymrep -c "cd /var/www/gymrep/server && pm2 delete gymrep 2>/dev/null; pm2 start dist/server.js --name gymrep && pm2 save"
 
 echo ""
 echo "=== Deploy complete ==="

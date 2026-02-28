@@ -467,7 +467,7 @@ export default function GymPage() {
         {/* ---------------------------------------------------------------- */}
         <div className="text-center pt-4 pb-2">
           <p className="text-[10px] text-text-muted">
-            Powered by <span className="text-accent-primary font-semibold">RepCount</span>
+            Powered by <span className="text-accent-primary font-semibold">GymRep</span>
           </p>
         </div>
       </div>

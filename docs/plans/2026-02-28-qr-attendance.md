@@ -4,7 +4,7 @@
 
 **Goal:** Add two-way QR check-in (owner scans member, member scans gym) and fix broken UI elements.
 
-**Architecture:** Member shows a static QR (their member `_id`). Owner has a camera scanner page that reads it and calls the existing attendance endpoint. Gym has a static QR (`repcount:checkin:<gymId>`). Member scans it via camera on home page, which calls a new `POST /api/me/check-in` endpoint. Both use `html5-qrcode` for scanning and `qrcode.react` for display.
+**Architecture:** Member shows a static QR (their member `_id`). Owner has a camera scanner page that reads it and calls the existing attendance endpoint. Gym has a static QR (`gymrep:checkin:<gymId>`). Member scans it via camera on home page, which calls a new `POST /api/me/check-in` endpoint. Both use `html5-qrcode` for scanning and `qrcode.react` for display.
 
 **Tech Stack:** html5-qrcode (scanner), qrcode.react (display), Express, React
 
@@ -487,9 +487,9 @@ const [scanLoading, setScanLoading] = useState(false)
 Add handler:
 ```tsx
 async function handleGymQrScan(qrData: string) {
-  // Expected format: repcount:checkin:<gymId> or just a raw gymId
-  const gymId = qrData.startsWith('repcount:checkin:')
-    ? qrData.replace('repcount:checkin:', '')
+  // Expected format: gymrep:checkin:<gymId> or just a raw gymId
+  const gymId = qrData.startsWith('gymrep:checkin:')
+    ? qrData.replace('gymrep:checkin:', '')
     : qrData
   if (!gymId || scanLoading) return
   setScanLoading(true)
@@ -594,7 +594,7 @@ After the form in Settings.tsx, at the bottom of the page (before the closing `<
     <div className="flex flex-col items-center py-4">
       <div className="bg-white p-4 rounded-2xl">
         <QRCodeSVG
-          value={`repcount:checkin:${gymId}`}
+          value={`gymrep:checkin:${gymId}`}
           size={200}
           level="M"
         />

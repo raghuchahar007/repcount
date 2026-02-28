@@ -85,8 +85,8 @@ export default function MemberHome() {
   }, [])
 
   async function handleGymQrScan(qrData: string) {
-    const gymId = qrData.startsWith('repcount:checkin:')
-      ? qrData.replace('repcount:checkin:', '')
+    const gymId = qrData.startsWith('gymrep:checkin:')
+      ? qrData.replace('gymrep:checkin:', '')
       : qrData
     if (!gymId || scanLoading) return
     setScanLoading(true)

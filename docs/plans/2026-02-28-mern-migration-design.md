@@ -1,11 +1,11 @@
-# RepCount MERN Migration Design
+# GymRep MERN Migration Design
 
 **Date:** 2026-02-28
 **Status:** Approved
 
 ## Overview
 
-Migrate RepCount from Next.js 14 + Supabase to MERN stack (MongoDB + Express + React + Vite). In-place migration in same repo — remove existing Next.js code, replace with `client/` + `server/` structure.
+Migrate GymRep from Next.js 14 + Supabase to MERN stack (MongoDB + Express + React + Vite). In-place migration in same repo — remove existing Next.js code, replace with `client/` + `server/` structure.
 
 ## Decisions
 
