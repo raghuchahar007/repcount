@@ -210,13 +210,11 @@ export default function WorkoutPage() {
           setToggling(false)
         }}
         disabled={toggling}
-        className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
-          workoutDone
-            ? 'bg-status-green/20 text-status-green border border-status-green/30'
-            : 'bg-accent-primary text-white'
+        className={`w-full py-3 rounded-2xl font-semibold text-white ${
+          workoutDone ? 'bg-status-green' : 'bg-accent-primary'
         }`}
       >
-        {workoutDone ? '\u2713 Workout Completed Today' : 'Mark Workout as Done'}
+        {workoutDone ? '✓ Done for today' : 'Mark Workout as Done'}
       </button>
     </div>
   )

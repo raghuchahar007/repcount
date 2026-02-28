@@ -173,13 +173,11 @@ export default function DietPage() {
           setToggling(false)
         }}
         disabled={toggling}
-        className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
-          dietDone
-            ? 'bg-status-green/20 text-status-green border border-status-green/30'
-            : 'bg-accent-primary text-white'
+        className={`w-full py-3 rounded-2xl font-semibold text-white ${
+          dietDone ? 'bg-status-green' : 'bg-accent-primary'
         }`}
       >
-        {dietDone ? '\u2713 Diet Completed Today' : 'Mark Diet as Done'}
+        {dietDone ? '✓ Done for today' : 'Mark Diet as Done'}
       </button>
     </div>
   )
