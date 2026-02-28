@@ -23,12 +23,13 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// On 401, try to refresh the token
+// On 401, try to refresh the token (skip for auth endpoints to avoid loops)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isAuthRequest = originalRequest?.url?.startsWith('/auth/')
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true
       try {
         const { data } = await axios.post(
@@ -41,7 +42,6 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch {
         accessToken = null
-        window.location.href = '/login'
         return Promise.reject(error)
       }
     }

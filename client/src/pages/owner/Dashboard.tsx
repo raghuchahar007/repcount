@@ -59,7 +59,7 @@ export default function OwnerDashboard() {
       const data = await getDashboard(gym._id)
       setStats({
         totalMembers: data.totalMembers || 0,
-        activeMembers: data.activeMembers || 0,
+        activeMembers: (data.totalMembers || 0) - (data.inactiveCount || 0),
         overdueCount: data.overdueCount || 0,
         expiringCount: data.expiringCount || 0,
         inactiveCount: data.inactiveCount || 0,

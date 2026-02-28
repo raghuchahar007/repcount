@@ -2,7 +2,7 @@
   "name": "repcount-server",
   "version": "1.0.0",
   "scripts": {
-    "dev": "npx nodemon --exec npx ts-node --esm src/server.ts",
+    "dev": "npx nodemon --exec 'npx ts-node' src/server.ts",
     "build": "npx tsc",
     "start": "node dist/server.js"
   },

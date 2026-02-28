@@ -11,10 +11,7 @@ import { generateWhatsAppLink, templates } from '@/utils/whatsapp'
 
 interface RenewalMembership {
   _id: string
-  member_name: string
-  member_phone: string
-  member?: { _id: string }
-  member_id?: string
+  member: { _id: string; name: string; phone: string }
   plan_type: string
   amount: number
   expiry_date: string
@@ -56,17 +53,13 @@ export default function RenewalsPage() {
     )
   }
 
-  function getMemberId(m: RenewalMembership): string {
-    return m.member?._id || m.member_id || ''
-  }
-
   function getWhatsAppLink(m: RenewalMembership): string {
     const isOverdue = new Date(m.expiry_date) < new Date(todayIST())
     const daysOverdue = Math.max(0, daysSince(m.expiry_date))
     const message = isOverdue
-      ? templates.overdue_payment(m.member_name, daysOverdue, m.amount, gymName)
-      : templates.renewal_reminder(m.member_name, formatDate(m.expiry_date), gymName, gymUpi || undefined)
-    return generateWhatsAppLink(m.member_phone, message)
+      ? templates.overdue_payment(m.member.name, daysOverdue, m.amount, gymName)
+      : templates.renewal_reminder(m.member.name, formatDate(m.expiry_date), gymName, gymUpi || undefined)
+    return generateWhatsAppLink(m.member.phone, message)
   }
 
   return (
@@ -93,31 +86,23 @@ export default function RenewalsPage() {
           {renewals.map((m) => {
             const isOverdue = new Date(m.expiry_date) < new Date(todayIST())
             const daysOverdue = Math.max(0, daysSince(m.expiry_date))
-            const memberId = getMemberId(m)
-
             return (
               <Card key={m._id}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      {memberId ? (
-                        <Link
-                          to={`/owner/members/${memberId}`}
-                          className="text-sm font-semibold text-text-primary truncate hover:text-accent-orange transition-colors"
-                        >
-                          {m.member_name}
-                        </Link>
-                      ) : (
-                        <p className="text-sm font-semibold text-text-primary truncate">
-                          {m.member_name}
-                        </p>
-                      )}
+                      <Link
+                        to={`/owner/members/${m.member._id}`}
+                        className="text-sm font-semibold text-text-primary truncate hover:text-accent-orange transition-colors"
+                      >
+                        {m.member.name}
+                      </Link>
                       <Badge color={isOverdue ? 'red' : 'yellow'}>
                         {isOverdue ? `${daysOverdue}d overdue` : 'Expiring'}
                       </Badge>
                     </div>
                     <p className="text-xs text-text-muted mt-0.5">
-                      {formatPhone(m.member_phone)}
+                      {formatPhone(m.member.phone)}
                       {' · '}
                       {formatCurrency(m.amount)}
                       {' · '}
@@ -138,7 +123,7 @@ export default function RenewalsPage() {
                       WhatsApp
                     </Button>
                   </a>
-                  <a href={`tel:+91${m.member_phone}`} className="flex-1">
+                  <a href={`tel:+91${m.member.phone}`} className="flex-1">
                     <Button variant="secondary" fullWidth size="sm">
                       Call
                     </Button>

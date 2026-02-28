@@ -16,6 +16,4 @@ const userSchema = new Schema<IUser>({
   created_at: { type: Date, default: Date.now },
 })
 
-userSchema.index({ phone: 1 }, { unique: true })
-
 export const User = mongoose.model<IUser>('User', userSchema)
