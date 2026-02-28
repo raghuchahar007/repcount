@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, KeyboardEvent, ClipboardEvent } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { verifyOtp } from '@/api/auth'
+import { sendOtp, verifyOtp } from '@/api/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 
@@ -8,6 +8,9 @@ export default function VerifyOtp() {
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [cooldown, setCooldown] = useState(30)
+  const [resending, setResending] = useState(false)
+  const [resendMsg, setResendMsg] = useState('')
   const inputsRef = useRef<(HTMLInputElement | null)[]>([])
   const navigate = useNavigate()
   const location = useLocation()
@@ -23,7 +26,35 @@ export default function VerifyOtp() {
     inputsRef.current[0]?.focus()
   }, [phone, navigate])
 
+  // Resend cooldown timer
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const id = setInterval(() => {
+      setCooldown((c) => (c <= 1 ? 0 : c - 1))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [cooldown])
+
   if (!phone) return null
+
+  // Mask phone: +91 99***99XX -> show first 2 and last 2 of the 10-digit number
+  const digits = phone.replace('+91', '')
+  const maskedPhone = `+91 ${digits.slice(0, 2)}***${digits.slice(-3)}`
+
+  async function handleResend() {
+    setResending(true)
+    setResendMsg('')
+    setError('')
+    try {
+      await sendOtp(phone)
+      setCooldown(30)
+      setResendMsg('OTP sent successfully')
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to resend OTP')
+    } finally {
+      setResending(false)
+    }
+  }
 
   async function handleVerify(otpString: string) {
     setError('')
@@ -83,7 +114,7 @@ export default function VerifyOtp() {
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-text-primary mb-2">Enter OTP</h1>
           <p className="text-text-secondary text-sm">
-            Sent to {phone.replace('+91', '')}
+            OTP sent to {maskedPhone}
           </p>
         </div>
 
@@ -106,6 +137,7 @@ export default function VerifyOtp() {
         </div>
 
         {error && <p className="text-status-red text-sm text-center mb-4">{error}</p>}
+        {resendMsg && <p className="text-status-green text-sm text-center mb-4">{resendMsg}</p>}
 
         <Button
           fullWidth
@@ -117,7 +149,16 @@ export default function VerifyOtp() {
         </Button>
 
         <button
-          className="w-full text-center text-text-muted text-sm mt-4 py-2"
+          className="w-full text-center text-sm mt-4 py-2 disabled:opacity-50"
+          style={{ color: cooldown > 0 ? 'var(--color-text-muted)' : 'var(--color-accent-primary)' }}
+          onClick={handleResend}
+          disabled={cooldown > 0 || resending || loading}
+        >
+          {resending ? 'Sending...' : cooldown > 0 ? `Resend OTP (${cooldown}s)` : 'Resend OTP'}
+        </button>
+
+        <button
+          className="w-full text-center text-text-muted text-sm mt-2 py-2"
           onClick={() => navigate('/login')}
           disabled={loading}
         >
