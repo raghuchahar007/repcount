@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getHome } from '@/api/me'
+import { getHome, toggleDailyLog, getDailyLog } from '@/api/me'
+import { todayIST } from '@/utils/helpers'
 import { WORKOUT_TEMPLATES, type WorkoutPlan, type WorkoutDay } from '@/utils/constants'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
@@ -48,6 +49,14 @@ export default function WorkoutPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [noGym, setNoGym] = useState(false)
+  const [workoutDone, setWorkoutDone] = useState(false)
+  const [toggling, setToggling] = useState(false)
+
+  useEffect(() => {
+    getDailyLog(todayIST()).then((logs: any[]) => {
+      setWorkoutDone(logs.some((l: any) => l.type === 'workout'))
+    }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     getHome()
@@ -190,6 +199,25 @@ export default function WorkoutPage() {
       <p className="text-text-muted text-[11px] text-center px-4 pb-2">
         This is a general template. Consult a trainer if you have any injuries or medical conditions.
       </p>
+
+      <button
+        onClick={async () => {
+          setToggling(true)
+          try {
+            const res = await toggleDailyLog('workout', todayIST())
+            setWorkoutDone(res.completed)
+          } catch {}
+          setToggling(false)
+        }}
+        disabled={toggling}
+        className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
+          workoutDone
+            ? 'bg-status-green/20 text-status-green border border-status-green/30'
+            : 'bg-accent-orange text-white'
+        }`}
+      >
+        {workoutDone ? '\u2713 Workout Completed Today' : 'Mark Workout as Done'}
+      </button>
     </div>
   )
 }

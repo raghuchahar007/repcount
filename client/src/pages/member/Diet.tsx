@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getHome } from '@/api/me'
+import { getHome, toggleDailyLog, getDailyLog } from '@/api/me'
+import { todayIST } from '@/utils/helpers'
 import { DIET_TEMPLATES, type MealPlan } from '@/utils/constants'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
@@ -19,6 +20,14 @@ export default function DietPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [noGym, setNoGym] = useState(false)
+  const [dietDone, setDietDone] = useState(false)
+  const [toggling, setToggling] = useState(false)
+
+  useEffect(() => {
+    getDailyLog(todayIST()).then((logs: any[]) => {
+      setDietDone(logs.some((l: any) => l.type === 'diet'))
+    }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     getHome()
@@ -153,6 +162,25 @@ export default function DietPage() {
       <p className="text-text-muted text-[11px] text-center px-4 pb-2">
         This is a general template. Consult a nutritionist for a plan tailored to your specific needs.
       </p>
+
+      <button
+        onClick={async () => {
+          setToggling(true)
+          try {
+            const res = await toggleDailyLog('diet', todayIST())
+            setDietDone(res.completed)
+          } catch {}
+          setToggling(false)
+        }}
+        disabled={toggling}
+        className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
+          dietDone
+            ? 'bg-status-green/20 text-status-green border border-status-green/30'
+            : 'bg-accent-orange text-white'
+        }`}
+      >
+        {dietDone ? '\u2713 Diet Completed Today' : 'Mark Diet as Done'}
+      </button>
     </div>
   )
 }

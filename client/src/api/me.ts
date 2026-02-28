@@ -59,3 +59,13 @@ export async function getJoinStatus() {
   const { data } = await api.get('/me/join-status')
   return data
 }
+
+export async function toggleDailyLog(type: 'workout' | 'diet', date: string) {
+  const { data } = await api.post('/me/log', { type, date })
+  return data
+}
+
+export async function getDailyLog(date: string) {
+  const { data } = await api.get('/me/log', { params: { date } })
+  return data
+}

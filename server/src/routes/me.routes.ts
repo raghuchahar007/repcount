@@ -13,6 +13,7 @@ import { Attendance } from '../models/Attendance'
 import { Progress } from '../models/Progress'
 import { GymPost } from '../models/GymPost'
 import { Gym } from '../models/Gym'
+import { DailyLog } from '../models/DailyLog'
 import { checkAndAwardBadges } from '../services/badge.service'
 
 const router = Router()
@@ -419,6 +420,51 @@ router.get('/leaderboard', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('GET /leaderboard error:', err)
     return res.status(500).json({ error: 'Failed to load leaderboard' })
+  }
+})
+
+// POST /log — Toggle daily completion
+router.post('/log', async (req: Request, res: Response) => {
+  try {
+    const { type, date } = req.body
+    if (!['workout', 'diet'].includes(type) || !date) {
+      return res.status(400).json({ error: 'type (workout|diet) and date required' })
+    }
+    const existing = await DailyLog.findOne({
+      member: req.member!._id,
+      gym: req.member!.gym,
+      date,
+      type,
+    })
+    if (existing) {
+      await existing.deleteOne()
+      return res.json({ completed: false })
+    }
+    await DailyLog.create({
+      member: req.member!._id,
+      gym: req.member!.gym,
+      date,
+      type,
+    })
+    res.json({ completed: true })
+  } catch (err: any) {
+    console.error('toggle log error:', err)
+    res.status(500).json({ error: 'Failed to toggle log' })
+  }
+})
+
+// GET /log?date=YYYY-MM-DD — Get logs for a date
+router.get('/log', async (req: Request, res: Response) => {
+  try {
+    const date = req.query.date as string || new Date().toISOString().slice(0, 10)
+    const logs = await DailyLog.find({
+      member: req.member!._id,
+      date,
+    }).lean()
+    res.json(logs)
+  } catch (err: any) {
+    console.error('get logs error:', err)
+    res.status(500).json({ error: 'Failed to get logs' })
   }
 })
 
