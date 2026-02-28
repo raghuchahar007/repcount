@@ -14,6 +14,7 @@ import LeadsPage from '@/pages/owner/Leads'
 import PostsPage from '@/pages/owner/Posts'
 import CreatePostPage from '@/pages/owner/CreatePost'
 import SettingsPage from '@/pages/owner/Settings'
+import GymPage from '@/pages/public/GymPage'
 import MemberLayout from '@/components/layout/MemberLayout'
 import MemberHome from '@/pages/member/Home'
 import LeaderboardPage from '@/pages/member/Leaderboard'
@@ -66,6 +67,7 @@ export default function App() {
           <Route path="profile" element={<ProfilePage />} />
         </Route>
 
+        <Route path="/gym/:slug" element={<GymPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

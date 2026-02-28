@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getMyGym } from '@/api/gym'
-import { getMember } from '@/api/members'
+import { getMember, checkInMember } from '@/api/members'
 import { recordPayment } from '@/api/memberships'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -24,8 +24,8 @@ interface Membership {
 
 interface AttendanceRecord {
   _id: string
-  date: string
-  created_at: string
+  check_in_date: string
+  checked_in_at: string
 }
 
 interface MemberData {
@@ -81,6 +81,10 @@ export default function MemberDetailPage() {
   const [paymentSubmitting, setPaymentSubmitting] = useState(false)
   const [paymentError, setPaymentError] = useState('')
 
+  // Check-in state
+  const [checkInLoading, setCheckInLoading] = useState(false)
+  const [checkInMsg, setCheckInMsg] = useState<{ text: string; type: 'success' | 'warning' | 'error' } | null>(null)
+
   async function loadData() {
     try {
       const gym = await getMyGym()
@@ -129,6 +133,29 @@ export default function MemberDetailPage() {
       setPaymentError(err.response?.data?.error || 'Failed to record payment')
     } finally {
       setPaymentSubmitting(false)
+    }
+  }
+
+  async function handleCheckIn() {
+    if (!gymId || checkInLoading) return
+    setCheckInLoading(true)
+    setCheckInMsg(null)
+    try {
+      await checkInMember(gymId, id!)
+      setCheckInMsg({ text: 'Checked in!', type: 'success' })
+      // Reload data to update attendance list
+      const memberData = await getMember(gymId, id!)
+      setData(memberData)
+      setTimeout(() => setCheckInMsg(null), 2500)
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        setCheckInMsg({ text: 'Already checked in today', type: 'warning' })
+      } else {
+        setCheckInMsg({ text: err.response?.data?.error || 'Check-in failed', type: 'error' })
+      }
+      setTimeout(() => setCheckInMsg(null), 2500)
+    } finally {
+      setCheckInLoading(false)
     }
   }
 
@@ -231,13 +258,27 @@ export default function MemberDetailPage() {
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Button
           fullWidth
           size="sm"
           onClick={() => setShowPaymentForm(!showPaymentForm)}
         >
           Record Payment
+        </Button>
+        <Button
+          fullWidth
+          size="sm"
+          variant={
+            checkInMsg?.type === 'success' ? 'success' :
+            checkInMsg?.type === 'warning' ? 'secondary' :
+            checkInMsg?.type === 'error' ? 'danger' :
+            'secondary'
+          }
+          loading={checkInLoading}
+          onClick={handleCheckIn}
+        >
+          {checkInMsg ? checkInMsg.text : 'Check In'}
         </Button>
         {getActionButton()}
       </div>
@@ -388,7 +429,7 @@ export default function MemberDetailPage() {
                 key={a._id}
                 className="bg-status-green/10 text-status-green border border-status-green/20 px-2.5 py-1 rounded-lg text-[11px] font-semibold"
               >
-                {formatDate(a.date)}
+                {formatDate(a.check_in_date)}
               </span>
             ))}
           </div>

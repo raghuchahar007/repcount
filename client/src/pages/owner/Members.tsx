@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getMyGym } from '@/api/gym'
-import { getMembers } from '@/api/members'
+import { getMembers, checkInMember } from '@/api/members'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
@@ -62,6 +62,8 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [gymId, setGymId] = useState('')
+  const [checkInStatus, setCheckInStatus] = useState<Record<string, 'loading' | 'success' | 'already' | 'error'>>({})
 
   const activeFilter = (searchParams.get('filter') as FilterType) || 'all'
 
@@ -69,6 +71,7 @@ export default function MembersPage() {
     async function load() {
       try {
         const gym = await getMyGym()
+        setGymId(gym._id)
         const data = await getMembers(gym._id)
         setMembers(data)
       } catch (err: any) {
@@ -122,6 +125,26 @@ export default function MembersPage() {
     }
     setSearchParams(searchParams, { replace: true })
   }
+
+  const handleCheckIn = useCallback(async (e: React.MouseEvent, memberId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!gymId || checkInStatus[memberId] === 'loading') return
+
+    setCheckInStatus((prev) => ({ ...prev, [memberId]: 'loading' }))
+    try {
+      await checkInMember(gymId, memberId)
+      setCheckInStatus((prev) => ({ ...prev, [memberId]: 'success' }))
+      setTimeout(() => setCheckInStatus((prev) => { const next = { ...prev }; delete next[memberId]; return next }), 2000)
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        setCheckInStatus((prev) => ({ ...prev, [memberId]: 'already' }))
+      } else {
+        setCheckInStatus((prev) => ({ ...prev, [memberId]: 'error' }))
+      }
+      setTimeout(() => setCheckInStatus((prev) => { const next = { ...prev }; delete next[memberId]; return next }), 2000)
+    }
+  }, [gymId, checkInStatus])
 
   if (loading) return <LoadingSpinner text="Loading members..." />
 
@@ -216,6 +239,41 @@ export default function MembersPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Check In */}
+                  <button
+                    onClick={(e) => handleCheckIn(e, member._id)}
+                    disabled={checkInStatus[member._id] === 'loading'}
+                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                      checkInStatus[member._id] === 'success'
+                        ? 'bg-status-green/20 text-status-green'
+                        : checkInStatus[member._id] === 'already'
+                        ? 'bg-status-yellow/20 text-status-yellow'
+                        : checkInStatus[member._id] === 'error'
+                        ? 'bg-status-red/20 text-status-red'
+                        : checkInStatus[member._id] === 'loading'
+                        ? 'bg-bg-card text-text-muted animate-pulse'
+                        : 'bg-status-green/10 text-status-green hover:bg-status-green/20 active:bg-status-green/30'
+                    }`}
+                    title={
+                      checkInStatus[member._id] === 'success' ? 'Checked in!' :
+                      checkInStatus[member._id] === 'already' ? 'Already checked in' :
+                      checkInStatus[member._id] === 'error' ? 'Error' :
+                      'Check in'
+                    }
+                  >
+                    {checkInStatus[member._id] === 'success' ? (
+                      <span>&#10003;</span>
+                    ) : checkInStatus[member._id] === 'already' ? (
+                      <span className="text-xs">&#10003;</span>
+                    ) : checkInStatus[member._id] === 'error' ? (
+                      <span>!</span>
+                    ) : checkInStatus[member._id] === 'loading' ? (
+                      <span className="text-xs">...</span>
+                    ) : (
+                      <span>&#10003;</span>
+                    )}
+                  </button>
 
                   {/* Chevron */}
                   <span className="text-text-muted text-sm shrink-0">›</span>

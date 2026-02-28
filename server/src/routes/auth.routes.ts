@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import { User } from '../models/User'
+import { Member } from '../models/Member'
 import { sendOtp as sendOtpService, verifyOtp as verifyOtpService } from '../services/otp.service'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../services/token.service'
 import { validate } from '../middleware/validate'
@@ -39,6 +40,15 @@ router.post('/verify-otp', validate(verifyOtpSchema), async (req: Request, res: 
     let user = await User.findOne({ phone })
     if (!user) {
       user = await User.create({ phone, role: 'member' })
+    }
+
+    // Auto-link member record if exists
+    if (user.role === 'member') {
+      const tenDigitPhone = phone.replace('+91', '')
+      await Member.updateOne(
+        { phone: tenDigitPhone, user: null },
+        { $set: { user: user._id } }
+      )
     }
 
     const tokenPayload = {
