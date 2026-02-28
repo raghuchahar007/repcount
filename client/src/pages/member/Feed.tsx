@@ -30,7 +30,7 @@ export default function FeedPage() {
 
   useEffect(() => {
     getFeed()
-      .then((data) => setPosts(data as FeedPost[]))
+      .then((data) => setPosts((data.posts || data) as FeedPost[]))
       .catch((err) => setError(err?.response?.data?.message || 'Failed to load feed'))
       .finally(() => setLoading(false))
   }, [])

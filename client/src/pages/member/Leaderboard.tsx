@@ -77,7 +77,7 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     getLeaderboard()
-      .then((d) => setEntries(d as LeaderboardEntry[]))
+      .then((d) => setEntries((d.leaderboard || d) as LeaderboardEntry[]))
       .catch((err) => setError(err?.response?.data?.message || 'Failed to load leaderboard'))
       .finally(() => setLoading(false))
   }, [])

@@ -24,7 +24,8 @@ interface HomeData {
     status: string
   } | null
   streak: number
-  attendanceDays: string[]
+  attendanceDays?: string[]
+  attendanceGrid?: { date: string; present: boolean }[]
 }
 
 /** Generate an array of YYYY-MM-DD strings for the last N days (most recent last). */
@@ -78,7 +79,9 @@ export default function MemberHome() {
 
   if (!data) return null
 
-  const { member, gym, membership, streak, attendanceDays } = data
+  const { member, gym, membership, streak } = data
+  // Handle both response shapes: attendanceDays (string[]) or attendanceGrid ({date, present}[])
+  const attendanceDays = data.attendanceDays || (data.attendanceGrid?.filter(d => d.present).map(d => d.date)) || []
   const attendanceSet = new Set(attendanceDays)
   const last30 = getLast30Days()
   const checkedInToday = attendanceSet.has(todayIST())
