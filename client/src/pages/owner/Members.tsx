@@ -64,6 +64,7 @@ export default function MembersPage() {
   const [search, setSearch] = useState('')
   const [gymId, setGymId] = useState('')
   const [checkInStatus, setCheckInStatus] = useState<Record<string, 'loading' | 'success' | 'already' | 'error'>>({})
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
   const activeFilter = (searchParams.get('filter') as FilterType) || 'all'
 
@@ -126,9 +127,7 @@ export default function MembersPage() {
     setSearchParams(searchParams, { replace: true })
   }
 
-  const handleCheckIn = useCallback(async (e: React.MouseEvent, memberId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const performCheckIn = useCallback(async (memberId: string) => {
     if (!gymId || checkInStatus[memberId] === 'loading') return
 
     setCheckInStatus((prev) => ({ ...prev, [memberId]: 'loading' }))
@@ -145,6 +144,22 @@ export default function MembersPage() {
       setTimeout(() => setCheckInStatus((prev) => { const next = { ...prev }; delete next[memberId]; return next }), 2000)
     }
   }, [gymId, checkInStatus])
+
+  const handleCheckIn = useCallback((e: React.MouseEvent, memberId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (checkInStatus[memberId]) return
+
+    if (confirmingId === memberId) {
+      // Second tap — do the actual check-in
+      performCheckIn(memberId)
+      setConfirmingId(null)
+    } else {
+      // First tap — show confirmation
+      setConfirmingId(memberId)
+      setTimeout(() => setConfirmingId(prev => prev === memberId ? null : prev), 3000)
+    }
+  }, [confirmingId, checkInStatus, performCheckIn])
 
   if (loading) return <LoadingSpinner text="Loading members..." />
 
@@ -244,21 +259,24 @@ export default function MembersPage() {
                   <button
                     onClick={(e) => handleCheckIn(e, member._id)}
                     disabled={checkInStatus[member._id] === 'loading'}
-                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                    className={`shrink-0 flex items-center justify-center text-sm font-bold transition-colors ${
                       checkInStatus[member._id] === 'success'
-                        ? 'bg-status-green/20 text-status-green'
+                        ? 'w-8 h-8 rounded-full bg-status-green/20 text-status-green'
                         : checkInStatus[member._id] === 'already'
-                        ? 'bg-status-yellow/20 text-status-yellow'
+                        ? 'w-8 h-8 rounded-full bg-status-yellow/20 text-status-yellow'
                         : checkInStatus[member._id] === 'error'
-                        ? 'bg-status-red/20 text-status-red'
+                        ? 'w-8 h-8 rounded-full bg-status-red/20 text-status-red'
                         : checkInStatus[member._id] === 'loading'
-                        ? 'bg-bg-card text-text-muted animate-pulse'
-                        : 'bg-status-green/10 text-status-green hover:bg-status-green/20 active:bg-status-green/30'
+                        ? 'w-8 h-8 rounded-full bg-bg-card text-text-muted animate-pulse'
+                        : confirmingId === member._id
+                        ? 'px-2 py-1 rounded-full bg-status-yellow/20 text-status-yellow text-xs'
+                        : 'w-8 h-8 rounded-full bg-status-green/10 text-status-green hover:bg-status-green/20 active:bg-status-green/30'
                     }`}
                     title={
                       checkInStatus[member._id] === 'success' ? 'Checked in!' :
                       checkInStatus[member._id] === 'already' ? 'Already checked in' :
                       checkInStatus[member._id] === 'error' ? 'Error' :
+                      confirmingId === member._id ? 'Tap to confirm' :
                       'Check in'
                     }
                   >
@@ -270,6 +288,8 @@ export default function MembersPage() {
                       <span>!</span>
                     ) : checkInStatus[member._id] === 'loading' ? (
                       <span className="text-xs">...</span>
+                    ) : confirmingId === member._id ? (
+                      <span>Tap to confirm</span>
                     ) : (
                       <span>&#10003;</span>
                     )}
