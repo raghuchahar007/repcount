@@ -84,7 +84,10 @@ router.post('/join-gym', requireAuth, validate(joinGymSchema), async (req: Reque
     const gym = await Gym.findOne({ slug: req.body.slug }).lean()
     if (!gym) return res.status(404).json({ error: 'Gym not found' })
 
-    const phone = req.user!.phone.replace('+91', '')
+    const phone = req.user!.phone ? req.user!.phone.replace('+91', '') : ''
+    if (!phone) {
+      return res.status(400).json({ error: 'Phone number required to join a gym' })
+    }
     const existing = await Member.findOne({ gym: gym._id, phone })
     if (existing) {
       if (!existing.user) {
