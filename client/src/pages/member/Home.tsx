@@ -149,50 +149,46 @@ export default function MemberHome() {
         <p className="text-sm text-text-secondary italic text-center">"{dailyQuote}"</p>
       </Card>
 
-      {/* QR Check-in */}
-      <Link to="/m/qr">
+      {/* Check-in Section */}
+      {checkedInToday ? (
         <Card>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">📱</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-text-primary">Show My QR</p>
-              <p className="text-text-secondary text-xs">For quick check-in at the gym</p>
-            </div>
-            <span className="text-text-muted text-lg">&rarr;</span>
+          <div className="flex items-center justify-center gap-2 py-2">
+            <span className="text-xl">✅</span>
+            <p className="text-status-green font-semibold text-sm">Checked in today</p>
           </div>
         </Card>
-      </Link>
-
-      {/* Scan Gym QR to Check In */}
-      {!checkedInToday && (
-        showScanner ? (
-          <Card>
-            <h3 className="text-sm font-semibold text-text-primary mb-3">Scan Gym QR</h3>
-            <QrScanner
-              onScan={handleGymQrScan}
-              onError={(err) => { setScanResult({ text: err, type: 'error' }); setShowScanner(false) }}
-            />
-            <button
-              onClick={() => setShowScanner(false)}
-              className="w-full text-center text-text-muted text-sm mt-3 py-2"
-            >
-              Cancel
-            </button>
-          </Card>
-        ) : (
-          <button onClick={() => { setShowScanner(true); setScanResult(null) }} className="w-full">
-            <Card>
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">📷</span>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-semibold text-text-primary">Scan to Check In</p>
-                  <p className="text-text-secondary text-xs">Scan gym QR at the gate</p>
-                </div>
-                <span className="text-text-muted text-lg">&rarr;</span>
-              </div>
-            </Card>
+      ) : showScanner ? (
+        <Card>
+          <h3 className="text-sm font-semibold text-text-primary mb-3">Scan Gym QR</h3>
+          <QrScanner
+            onScan={handleGymQrScan}
+            onError={(err) => { setScanResult({ text: err, type: 'error' }); setShowScanner(false) }}
+          />
+          <button
+            onClick={() => setShowScanner(false)}
+            className="w-full text-center text-text-muted text-sm mt-3 py-2"
+          >
+            Cancel
           </button>
-        )
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {/* Primary action: Scan Gym QR */}
+          <button
+            onClick={() => { setShowScanner(true); setScanResult(null) }}
+            className="w-full bg-accent-primary text-black font-semibold py-4 rounded-2xl text-base active:scale-[0.97] transition-transform"
+          >
+            Scan Gym QR to Check In
+          </button>
+          <p className="text-text-secondary text-xs text-center">Point your camera at the QR code at the gym</p>
+
+          {/* Secondary action: Show My QR */}
+          <div className="text-center pt-1">
+            <Link to="/m/qr" className="text-accent-primary text-sm underline">
+              Or show your QR to staff
+            </Link>
+          </div>
+        </div>
       )}
 
       {scanResult && (
