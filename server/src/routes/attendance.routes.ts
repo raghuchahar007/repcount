@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import { Attendance } from '../models/Attendance'
 import { Member } from '../models/Member'
+import { checkAndAwardBadges } from '../services/badge.service'
 import { requireAuth } from '../middleware/auth'
 import { requireOwner } from '../middleware/roleGuard'
 import { requireGymAccess } from '../middleware/gymAccess'
@@ -46,6 +47,9 @@ router.post(
       // Evaluate badges async — don't block the response
       evaluateBadges(member_id, gymId as string).catch((err) =>
         console.error('evaluateBadges error:', err),
+      )
+      checkAndAwardBadges(member_id as any, gymId as any).catch((err) =>
+        console.error('checkAndAwardBadges error:', err),
       )
 
       res.status(201).json(attendance)

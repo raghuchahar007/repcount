@@ -13,6 +13,7 @@ import { Attendance } from '../models/Attendance'
 import { Progress } from '../models/Progress'
 import { GymPost } from '../models/GymPost'
 import { Gym } from '../models/Gym'
+import { checkAndAwardBadges } from '../services/badge.service'
 
 const router = Router()
 
@@ -42,7 +43,9 @@ router.post('/check-in', requireAuth, validate(selfCheckInSchema), async (req: R
       checked_in_at: new Date(),
     })
 
-    res.status(201).json({ message: 'Checked in!', attendance })
+    const newBadges = await checkAndAwardBadges(member._id, gymId as any)
+
+    res.status(201).json({ message: 'Checked in!', attendance, newBadges })
   } catch (err: any) {
     if (err.code === 11000) {
       return res.status(409).json({ error: 'Already checked in today' })
