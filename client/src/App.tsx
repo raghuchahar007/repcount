@@ -28,6 +28,7 @@ import FeedPage from '@/pages/member/Feed'
 import ProfilePage from '@/pages/member/Profile'
 import MyQRPage from '@/pages/member/MyQR'
 import DiscoverGymsPage from '@/pages/member/DiscoverGyms'
+import Register from '@/pages/Register'
 
 function RootRedirect() {
   const { user, loading } = useAuth()
@@ -43,6 +44,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/verify" element={<VerifyOtp />} />
         <Route path="/choose-role" element={<ChooseRole />} />
 
