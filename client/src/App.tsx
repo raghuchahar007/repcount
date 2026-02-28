@@ -16,6 +16,11 @@ import CreatePostPage from '@/pages/owner/CreatePost'
 import SettingsPage from '@/pages/owner/Settings'
 import MemberLayout from '@/components/layout/MemberLayout'
 import MemberHome from '@/pages/member/Home'
+import LeaderboardPage from '@/pages/member/Leaderboard'
+import DietPage from '@/pages/member/Diet'
+import WorkoutPage from '@/pages/member/Workout'
+import FeedPage from '@/pages/member/Feed'
+import ProfilePage from '@/pages/member/Profile'
 
 function RootRedirect() {
   const { user, loading } = useAuth()
@@ -54,6 +59,11 @@ export default function App() {
           </ProtectedRoute>
         }>
           <Route index element={<MemberHome />} />
+          <Route path="leaderboard" element={<LeaderboardPage />} />
+          <Route path="diet" element={<DietPage />} />
+          <Route path="workout" element={<WorkoutPage />} />
+          <Route path="feed" element={<FeedPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
