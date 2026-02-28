@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { BottomNav, memberNavItems } from './BottomNav'
 import { getMyGyms } from '@/api/me'
 
@@ -10,6 +10,7 @@ interface GymInfo {
 }
 
 export default function MemberLayout() {
+  const navigate = useNavigate()
   const [gyms, setGyms] = useState<GymInfo[]>([])
   const [activeGymId, setActiveGymId] = useState<string>(
     localStorage.getItem('repcount_active_gym') || ''
@@ -30,9 +31,9 @@ export default function MemberLayout() {
   }, [])
 
   function handleGymSwitch(gymId: string) {
-    setActiveGymId(gymId)
     localStorage.setItem('repcount_active_gym', gymId)
-    window.location.reload()
+    setActiveGymId(gymId)
+    navigate('/m')
   }
 
   const activeGym = gyms.find(g => g.gym._id === activeGymId)
