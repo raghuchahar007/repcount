@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { discoverGyms } from '@/api/me'
+import { discoverGyms, getJoinStatus } from '@/api/me'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
@@ -19,6 +19,16 @@ export default function DiscoverGymsPage() {
   const [gyms, setGyms] = useState<GymPreview[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [pendingSlugs, setPendingSlugs] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    getJoinStatus()
+      .then((leads: any[]) => {
+        const slugs = new Set(leads.map((l: any) => l.gym?.slug).filter(Boolean))
+        setPendingSlugs(slugs)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -85,7 +95,11 @@ export default function DiscoverGymsPage() {
                       from ₹{lowestPrice(gym.pricing)}
                     </p>
                   )}
-                  <span className="text-text-muted text-lg">&rarr;</span>
+                  {pendingSlugs.has(gym.slug) ? (
+                    <span className="text-xs font-medium text-status-yellow bg-status-yellow/10 px-2 py-1 rounded-full">Pending</span>
+                  ) : (
+                    <span className="text-text-muted text-lg">&rarr;</span>
+                  )}
                 </div>
               </div>
             </Card>
