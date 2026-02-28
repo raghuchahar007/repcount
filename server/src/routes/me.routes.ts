@@ -284,17 +284,23 @@ router.get('/profile', async (req: Request, res: Response) => {
   }
 })
 
-// PUT /profile - update goal, diet_pref
+// PUT /profile - update name, goal, diet_pref
 router.put('/profile', validate(updateProfileSchema), async (req: Request, res: Response) => {
   try {
     const member = req.member!
     const updates: Record<string, unknown> = {}
 
+    if (req.body.name !== undefined) updates.name = req.body.name
     if (req.body.goal !== undefined) updates.goal = req.body.goal
     if (req.body.diet_pref !== undefined) updates.diet_pref = req.body.diet_pref
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ error: 'No valid fields to update' })
+    }
+
+    // Update name on User model as well (keep in sync)
+    if (updates.name) {
+      await User.findByIdAndUpdate(req.user!.userId, { full_name: updates.name })
     }
 
     const updated = await Member.findByIdAndUpdate(member._id, updates, { new: true }).lean()

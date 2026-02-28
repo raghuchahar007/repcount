@@ -10,7 +10,7 @@ export async function getProfile() {
   return data
 }
 
-export async function updateProfile(updates: { goal?: string; diet_pref?: string }) {
+export async function updateProfile(updates: { name?: string; goal?: string; diet_pref?: string }) {
   const { data } = await api.put('/me/profile', updates)
   return data
 }
@@ -67,5 +67,10 @@ export async function toggleDailyLog(type: 'workout' | 'diet', date: string) {
 
 export async function getDailyLog(date: string) {
   const { data } = await api.get('/me/log', { params: { date } })
+  return data
+}
+
+export async function leaveGym() {
+  const { data } = await api.delete('/me/leave-gym')
   return data
 }

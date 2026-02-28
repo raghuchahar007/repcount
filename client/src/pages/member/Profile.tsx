@@ -48,6 +48,7 @@ export default function ProfilePage() {
   const [noGym, setNoGym] = useState(false)
 
   // Editable fields
+  const [name, setName] = useState('')
   const [goal, setGoal] = useState('')
   const [dietPref, setDietPref] = useState('')
   const [saving, setSaving] = useState(false)
@@ -60,6 +61,7 @@ export default function ProfilePage() {
       .then((d) => {
         const profileData = d as ProfileData
         setData(profileData)
+        setName(profileData.member.name || '')
         setGoal(profileData.member.goal || '')
         setDietPref(profileData.member.diet_pref || '')
       })
@@ -77,7 +79,19 @@ export default function ProfilePage() {
     setSaving(true)
     setSaveMsg('')
     try {
-      await updateProfile({ goal: goal || undefined, diet_pref: dietPref || undefined })
+      await updateProfile({ name: name.trim() || undefined, goal: goal || undefined, diet_pref: dietPref || undefined })
+      // Update local data so header and hasChanges stay in sync
+      if (data) {
+        setData({
+          ...data,
+          member: {
+            ...data.member,
+            name: name.trim() || data.member.name,
+            goal: goal || data.member.goal,
+            diet_pref: dietPref || data.member.diet_pref,
+          },
+        })
+      }
       setSaveMsg('Saved!')
       setTimeout(() => setSaveMsg(''), 2000)
     } catch {
@@ -113,7 +127,7 @@ export default function ProfilePage() {
 
   // Determine if form has changed from server values
   const hasChanges =
-    (goal !== (member.goal || '')) || (dietPref !== (member.diet_pref || ''))
+    (name !== (member.name || '')) || (goal !== (member.goal || '')) || (dietPref !== (member.diet_pref || ''))
 
   return (
     <div className="p-4 space-y-4">
@@ -136,6 +150,18 @@ export default function ProfilePage() {
       {/* Editable Preferences */}
       <Card>
         <h3 className="text-sm font-semibold text-text-primary mb-3">Preferences</h3>
+
+        {/* Name */}
+        <div className="mb-3">
+          <label className="block text-xs text-text-secondary mb-1.5">Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            className="w-full px-3 py-2.5 rounded-xl text-sm bg-bg-card border border-border-light text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
+          />
+        </div>
 
         {/* Goal */}
         <div className="mb-3">
