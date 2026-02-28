@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProfile, updateProfile, leaveGym } from '@/api/me'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { SkeletonCard } from '@/components/shared/Skeleton'
@@ -44,6 +45,7 @@ interface ProfileData {
 export default function ProfilePage() {
   const { logout } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   const [data, setData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -55,7 +57,6 @@ export default function ProfilePage() {
   const [goal, setGoal] = useState('')
   const [dietPref, setDietPref] = useState('')
   const [saving, setSaving] = useState(false)
-  const [saveMsg, setSaveMsg] = useState('')
 
   const [loggingOut, setLoggingOut] = useState(false)
   const [leavingGym, setLeavingGym] = useState(false)
@@ -87,7 +88,6 @@ export default function ProfilePage() {
 
   async function handleSave() {
     setSaving(true)
-    setSaveMsg('')
     try {
       await updateProfile({ name: name.trim() || undefined, goal: goal || undefined, diet_pref: dietPref || undefined })
       // Update local data so header and hasChanges stay in sync
@@ -102,10 +102,9 @@ export default function ProfilePage() {
           },
         })
       }
-      setSaveMsg('Saved!')
-      setTimeout(() => setSaveMsg(''), 2000)
+      toast('Saved!')
     } catch {
-      setSaveMsg('Failed to save')
+      toast('Failed to save', 'error')
     } finally {
       setSaving(false)
     }
@@ -234,26 +233,15 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Save button + feedback */}
-        <div className="flex items-center gap-3">
-          <Button
-            size="sm"
-            onClick={handleSave}
-            loading={saving}
-            disabled={!hasChanges}
-          >
-            Save Changes
-          </Button>
-          {saveMsg && (
-            <span
-              className={`text-xs font-medium ${
-                saveMsg === 'Saved!' ? 'text-status-green' : 'text-status-red'
-              }`}
-            >
-              {saveMsg}
-            </span>
-          )}
-        </div>
+        {/* Save button */}
+        <Button
+          size="sm"
+          onClick={handleSave}
+          loading={saving}
+          disabled={!hasChanges}
+        >
+          Save Changes
+        </Button>
       </Card>
 
       {/* Badges */}

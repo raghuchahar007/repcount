@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyGym, createGym, updateGym } from '@/api/gym'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/contexts/ToastContext'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
@@ -12,11 +13,11 @@ import { QRCodeSVG } from 'qrcode.react'
 export default function SettingsPage() {
   const { logout } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [gymId, setGymId] = useState<string | null>(null)
-  const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [initialForm, setInitialForm] = useState<string>('')
@@ -107,8 +108,6 @@ export default function SettingsPage() {
       return
     }
     setSaving(true)
-    setError('')
-    setSuccess('')
     setValidationErrors([])
 
     try {
@@ -137,11 +136,10 @@ export default function SettingsPage() {
         if (created?._id) setGymId(created._id)
       }
 
-      setSuccess('Saved!')
+      toast('Saved!')
       setInitialForm(JSON.stringify(form))
-      setTimeout(() => setSuccess(''), 2000)
     } catch (err: any) {
-      setError(err?.response?.data?.error || err.message || 'Failed to save')
+      toast(err?.response?.data?.error || err.message || 'Failed to save', 'error')
     } finally {
       setSaving(false)
     }
@@ -246,7 +244,6 @@ export default function SettingsPage() {
       </Card>
 
       {error && <p className="text-status-red text-xs text-center">{error}</p>}
-      {success && <p className="text-status-green text-xs text-center">{success}</p>}
 
       <Button onClick={handleSave} fullWidth size="lg" loading={saving}>
         {gymId ? 'Save Changes' : 'Create Gym'}
@@ -292,8 +289,7 @@ export default function SettingsPage() {
                   navigator.share({ title: `Join ${form.name}`, url })
                 } else {
                   navigator.clipboard.writeText(url)
-                  setSuccess('Link copied!')
-                  setTimeout(() => setSuccess(''), 2000)
+                  toast('Link copied!')
                 }
               }}
             >

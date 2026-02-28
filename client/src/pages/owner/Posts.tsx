@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { SkeletonList } from '@/components/shared/Skeleton'
 import ErrorCard from '@/components/shared/ErrorCard'
+import Pagination from '@/components/shared/Pagination'
 import { formatDate } from '@/utils/helpers'
 import { POST_TYPES } from '@/utils/constants'
 
@@ -30,15 +31,18 @@ export default function PostsPage() {
   const [gymId, setGymId] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
 
-  async function fetchPosts() {
+  async function fetchPosts(p: number = page) {
     setLoading(true)
     setError('')
     try {
       const gym = await getMyGym()
       setGymId(gym._id)
-      const data = await getPosts(gym._id)
-      setPosts(data)
+      const result = await getPosts(gym._id, { page: p })
+      setPosts(result.data)
+      setTotalPages(result.totalPages)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load posts')
     } finally {
@@ -47,8 +51,8 @@ export default function PostsPage() {
   }
 
   useEffect(() => {
-    fetchPosts()
-  }, [])
+    fetchPosts(page)
+  }, [page])
 
   async function handleDelete(postId: string) {
     if (!window.confirm('Are you sure you want to delete this post?')) return
@@ -159,6 +163,8 @@ export default function PostsPage() {
           })}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )
 }

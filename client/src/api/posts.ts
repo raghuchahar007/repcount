@@ -1,13 +1,13 @@
 import api from './axios'
 
-export async function getPosts(gymId: string) {
-  const { data } = await api.get(`/gym/${gymId}/posts`)
+export async function getPosts(gymId: string, params?: { page?: number; limit?: number }) {
+  const { data } = await api.get(`/gym/${gymId}/posts`, { params })
   return data
 }
 
 export async function getPost(gymId: string, postId: string) {
-  const posts = await getPosts(gymId)
-  const post = posts.find((p: any) => p._id === postId)
+  const result = await getPosts(gymId)
+  const post = result.data.find((p: any) => p._id === postId)
   if (!post) throw new Error('Post not found')
   return post
 }

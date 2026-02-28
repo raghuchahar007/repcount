@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { SkeletonList } from '@/components/shared/Skeleton'
 import ErrorCard from '@/components/shared/ErrorCard'
 import { NoGymCard } from '@/components/shared/NoGymCard'
+import { useToast } from '@/contexts/ToastContext'
 import { POST_TYPES } from '@/utils/constants'
 import { formatDate } from '@/utils/helpers'
 
@@ -25,6 +26,7 @@ function getPostType(value: string) {
 }
 
 export default function FeedPage() {
+  const { toast } = useToast()
   const [posts, setPosts] = useState<FeedPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -73,6 +75,7 @@ export default function FeedPage() {
             : p
         )
       )
+      toast('Failed to join challenge', 'error')
     } finally {
       setJoiningId(null)
     }

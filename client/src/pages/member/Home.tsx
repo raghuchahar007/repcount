@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { SkeletonDashboard } from '@/components/shared/Skeleton'
 import ErrorCard from '@/components/shared/ErrorCard'
 import { QrScanner } from '@/components/shared/QrScanner'
+import { useToast } from '@/contexts/ToastContext'
 import { BADGE_TYPES, PLAN_TYPES, MOTIVATION_QUOTES } from '@/utils/constants'
 import { formatDate, daysUntil, todayIST } from '@/utils/helpers'
 
@@ -60,9 +61,9 @@ export default function MemberHome() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showScanner, setShowScanner] = useState(false)
-  const [scanResult, setScanResult] = useState<{ text: string; type: 'success' | 'warning' | 'error' } | null>(null)
   const [scanLoading, setScanLoading] = useState(false)
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   function fetchHome() {
     setLoading(true)
@@ -92,12 +93,12 @@ export default function MemberHome() {
     setShowScanner(false)
     try {
       await selfCheckIn(gymId)
-      setScanResult({ text: 'Checked in!', type: 'success' })
+      toast('Checked in!')
     } catch (err: any) {
       if (err.response?.status === 409) {
-        setScanResult({ text: 'Already checked in today', type: 'warning' })
+        toast('Already checked in today', 'info')
       } else {
-        setScanResult({ text: err.response?.data?.error || 'Check-in failed', type: 'error' })
+        toast(err.response?.data?.error || 'Check-in failed', 'error')
       }
     } finally {
       setScanLoading(false)
@@ -167,7 +168,7 @@ export default function MemberHome() {
           <h3 className="text-sm font-semibold text-text-primary mb-3">Scan Gym QR</h3>
           <QrScanner
             onScan={handleGymQrScan}
-            onError={(err) => { setScanResult({ text: err, type: 'error' }); setShowScanner(false) }}
+            onError={(err) => { toast(err, 'error'); setShowScanner(false) }}
           />
           <button
             onClick={() => setShowScanner(false)}
@@ -180,7 +181,7 @@ export default function MemberHome() {
         <div className="space-y-2">
           {/* Primary action: Scan Gym QR */}
           <button
-            onClick={() => { setShowScanner(true); setScanResult(null) }}
+            onClick={() => setShowScanner(true)}
             className="w-full bg-accent-primary text-black font-semibold py-4 rounded-2xl text-base active:scale-[0.97] transition-transform"
           >
             Scan Gym QR to Check In
@@ -194,16 +195,6 @@ export default function MemberHome() {
             </Link>
           </div>
         </div>
-      )}
-
-      {scanResult && (
-        <Card>
-          <p className={`text-sm text-center font-semibold ${
-            scanResult.type === 'success' ? 'text-status-green' :
-            scanResult.type === 'warning' ? 'text-status-yellow' :
-            'text-status-red'
-          }`}>{scanResult.text}</p>
-        </Card>
       )}
 
       {/* Streak */}

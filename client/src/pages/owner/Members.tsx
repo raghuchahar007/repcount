@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { SkeletonList } from '@/components/shared/Skeleton'
 import ErrorCard from '@/components/shared/ErrorCard'
 import Pagination from '@/components/shared/Pagination'
+import { useToast } from '@/contexts/ToastContext'
 import { todayIST, getInitials, formatPhone, daysUntil } from '@/utils/helpers'
 
 interface LatestMembership {
@@ -60,6 +61,7 @@ const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
 
 export default function MembersPage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const { toast } = useToast()
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -149,10 +151,11 @@ export default function MembersPage() {
         setCheckInStatus((prev) => ({ ...prev, [memberId]: 'already' }))
       } else {
         setCheckInStatus((prev) => ({ ...prev, [memberId]: 'error' }))
+        toast(err.response?.data?.error || 'Check-in failed', 'error')
       }
       setTimeout(() => setCheckInStatus((prev) => { const next = { ...prev }; delete next[memberId]; return next }), 2000)
     }
-  }, [gymId, checkInStatus])
+  }, [gymId, checkInStatus, toast])
 
   const handleCheckIn = useCallback((e: React.MouseEvent, memberId: string) => {
     e.preventDefault()

@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { useToast } from '@/contexts/ToastContext'
 import { POST_TYPES } from '@/utils/constants'
 
 const DATE_POST_TYPES = ['challenge', 'event', 'offer']
@@ -13,6 +14,7 @@ const DATE_POST_TYPES = ['challenge', 'event', 'offer']
 export default function CreatePostPage() {
   const navigate = useNavigate()
   const { postId } = useParams<{ postId?: string }>()
+  const { toast } = useToast()
   const isEditMode = Boolean(postId)
 
   const [gymId, setGymId] = useState('')
@@ -54,10 +56,9 @@ export default function CreatePostPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
 
     if (!title.trim()) {
-      setError('Title is required')
+      toast('Title is required', 'error')
       return
     }
 
@@ -78,9 +79,10 @@ export default function CreatePostPage() {
       } else {
         await createPost(gymId, payload)
       }
+      toast(isEditMode ? 'Post updated' : 'Post published')
       navigate('/owner/posts')
     } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${isEditMode ? 'update' : 'create'} post`)
+      toast(err.response?.data?.error || `Failed to ${isEditMode ? 'update' : 'create'} post`, 'error')
     } finally {
       setSubmitting(false)
     }

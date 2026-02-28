@@ -1,6 +1,6 @@
 import api from './axios'
 
-export async function getMembers(gymId: string, params?: { search?: string; filter?: string }) {
+export async function getMembers(gymId: string, params?: { search?: string; filter?: string; page?: number; limit?: number }) {
   const { data } = await api.get(`/gym/${gymId}/members`, { params })
   return data
 }

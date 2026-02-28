@@ -1,7 +1,7 @@
 import api from './axios'
 
-export async function getLeads(gymId: string, status?: string) {
-  const { data } = await api.get(`/gym/${gymId}/leads`, { params: status && status !== 'all' ? { status } : undefined })
+export async function getLeads(gymId: string, params?: { status?: string; source?: string; page?: number; limit?: number }) {
+  const { data } = await api.get(`/gym/${gymId}/leads`, { params })
   return data
 }
 

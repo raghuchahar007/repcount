@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { getMyGym } from '@/api/gym'
 import { getLeads, updateLead } from '@/api/leads'
 import { convertLead } from '@/api/owner'
@@ -70,15 +70,6 @@ export default function LeadsPage() {
   // Filtering is now done server-side; leads already contains the filtered result
   const filtered = leads
 
-  const counts = useMemo(() => {
-    const c = { all: leads.length, new: 0, contacted: 0, converted: 0 }
-    for (const l of leads) {
-      if (l.status === 'new') c.new++
-      else if (l.status === 'contacted') c.contacted++
-      else if (l.status === 'converted') c.converted++
-    }
-    return c
-  }, [leads])
 
   async function handleMarkContacted(lead: Lead) {
     // Optimistic update
@@ -122,11 +113,11 @@ export default function LeadsPage() {
     )
   }
 
-  const FILTERS: { value: FilterType; label: string; count: number }[] = [
-    { value: 'all', label: 'All', count: counts.all },
-    { value: 'new', label: 'New', count: counts.new },
-    { value: 'contacted', label: 'Contacted', count: counts.contacted },
-    { value: 'converted', label: 'Converted', count: counts.converted },
+  const FILTERS: { value: FilterType; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'new', label: 'New' },
+    { value: 'contacted', label: 'Contacted' },
+    { value: 'converted', label: 'Converted' },
   ]
 
   const SOURCE_FILTERS: { value: SourceFilter; label: string }[] = [
@@ -154,7 +145,7 @@ export default function LeadsPage() {
                 : 'bg-bg-card border border-border-light text-text-secondary'
             }`}
           >
-            {f.label} ({f.count})
+            {f.label}
           </button>
         ))}
       </div>
@@ -252,6 +243,8 @@ export default function LeadsPage() {
           ))}
         </div>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   )
 }
