@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getProfile, updateProfile } from '@/api/me'
+import { useNavigate } from 'react-router-dom'
+import { getProfile, updateProfile, leaveGym } from '@/api/me'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -41,6 +42,7 @@ interface ProfileData {
 
 export default function ProfilePage() {
   const { logout } = useAuth()
+  const navigate = useNavigate()
 
   const [data, setData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -55,6 +57,7 @@ export default function ProfilePage() {
   const [saveMsg, setSaveMsg] = useState('')
 
   const [loggingOut, setLoggingOut] = useState(false)
+  const [leavingGym, setLeavingGym] = useState(false)
 
   useEffect(() => {
     getProfile()
@@ -98,6 +101,18 @@ export default function ProfilePage() {
       setSaveMsg('Failed to save')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleLeaveGym() {
+    const gymName = data?.gym?.name || 'this gym'
+    if (!window.confirm(`Leave ${gymName}?`)) return
+    setLeavingGym(true)
+    try {
+      await leaveGym()
+      navigate('/m')
+    } catch {
+      setLeavingGym(false)
     }
   }
 
@@ -361,6 +376,17 @@ export default function ProfilePage() {
           </div>
         </Card>
       )}
+
+      {/* Leave Gym */}
+      <Button
+        variant="outline"
+        fullWidth
+        onClick={handleLeaveGym}
+        loading={leavingGym}
+        className="!text-status-red !border-status-red/30"
+      >
+        Leave Gym
+      </Button>
 
       {/* Logout */}
       <Button
