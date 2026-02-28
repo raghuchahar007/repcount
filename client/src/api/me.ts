@@ -44,3 +44,8 @@ export async function selfCheckIn(gymId: string) {
   const { data } = await api.post('/me/check-in', { gymId })
   return data
 }
+
+export async function discoverGyms(q?: string) {
+  const { data } = await api.get('/public/gyms', { params: q ? { q } : {} })
+  return data
+}

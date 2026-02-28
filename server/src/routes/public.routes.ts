@@ -7,6 +7,32 @@ import { validate } from '../middleware/validate'
 
 const router = Router()
 
+// GET /api/public/gyms — List all gyms (for discovery)
+router.get(
+  '/gyms',
+  async (req: Request, res: Response) => {
+    try {
+      const { q } = req.query
+      const filter: Record<string, any> = {}
+      if (q && typeof q === 'string' && q.trim()) {
+        filter.$or = [
+          { name: { $regex: q.trim(), $options: 'i' } },
+          { city: { $regex: q.trim(), $options: 'i' } },
+        ]
+      }
+      const gyms = await Gym.find(filter)
+        .select('name slug city address facilities pricing')
+        .sort({ name: 1 })
+        .limit(50)
+        .lean()
+      res.json(gyms)
+    } catch (err: any) {
+      console.error('list public gyms error:', err)
+      res.status(500).json({ error: 'Failed to fetch gyms' })
+    }
+  },
+)
+
 const leadFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   phone: z.string().regex(/^\d{10}$/, 'Phone must be 10 digits'),

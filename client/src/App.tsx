@@ -26,6 +26,7 @@ import WorkoutPage from '@/pages/member/Workout'
 import FeedPage from '@/pages/member/Feed'
 import ProfilePage from '@/pages/member/Profile'
 import MyQRPage from '@/pages/member/MyQR'
+import DiscoverGymsPage from '@/pages/member/DiscoverGyms'
 
 function RootRedirect() {
   const { user, loading } = useAuth()
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="join-gym" element={<JoinGymPage />} />
           <Route path="qr" element={<MyQRPage />} />
+          <Route path="discover" element={<DiscoverGymsPage />} />
         </Route>
 
         <Route path="/gym/:slug" element={<GymPage />} />
