@@ -14,6 +14,7 @@ import LeadsPage from '@/pages/owner/Leads'
 import PostsPage from '@/pages/owner/Posts'
 import CreatePostPage from '@/pages/owner/CreatePost'
 import SettingsPage from '@/pages/owner/Settings'
+import ScanCheckinPage from '@/pages/owner/ScanCheckin'
 import ChooseRole from '@/pages/ChooseRole'
 import JoinGymPage from '@/pages/member/JoinGym'
 import GymPage from '@/pages/public/GymPage'
@@ -24,6 +25,7 @@ import DietPage from '@/pages/member/Diet'
 import WorkoutPage from '@/pages/member/Workout'
 import FeedPage from '@/pages/member/Feed'
 import ProfilePage from '@/pages/member/Profile'
+import MyQRPage from '@/pages/member/MyQR'
 
 function RootRedirect() {
   const { user, loading } = useAuth()
@@ -55,6 +57,7 @@ export default function App() {
           <Route path="leads" element={<LeadsPage />} />
           <Route path="posts" element={<PostsPage />} />
           <Route path="posts/create" element={<CreatePostPage />} />
+          <Route path="scan" element={<ScanCheckinPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 
@@ -70,6 +73,7 @@ export default function App() {
           <Route path="feed" element={<FeedPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="join-gym" element={<JoinGymPage />} />
+          <Route path="qr" element={<MyQRPage />} />
         </Route>
 
         <Route path="/gym/:slug" element={<GymPage />} />

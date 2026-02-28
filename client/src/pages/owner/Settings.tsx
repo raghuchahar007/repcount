@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { FACILITIES_OPTIONS } from '@/utils/constants'
 import { slugify } from '@/utils/helpers'
+import { QRCodeSVG } from 'qrcode.react'
 
 export default function SettingsPage() {
   const { logout } = useAuth()
@@ -219,6 +220,27 @@ export default function SettingsPage() {
       <Button onClick={handleSave} fullWidth size="lg" loading={saving}>
         {gymId ? 'Save Changes' : 'Create Gym'}
       </Button>
+
+      {/* Gym QR Code for Check-In */}
+      {gymId && (
+        <Card>
+          <h3 className="text-sm font-semibold text-text-primary mb-3">Gym Check-In QR</h3>
+          <p className="text-text-secondary text-xs mb-4">
+            Print this and place at your gym entrance. Members scan it to check in.
+          </p>
+          <div className="flex flex-col items-center py-4">
+            <div className="bg-white p-4 rounded-2xl">
+              <QRCodeSVG
+                value={`repcount:checkin:${gymId}`}
+                size={200}
+                level="M"
+              />
+            </div>
+            <p className="text-text-primary font-semibold mt-3">{form.name || 'Your Gym'}</p>
+            <p className="text-text-muted text-xs mt-1">Scan to check in</p>
+          </div>
+        </Card>
+      )}
 
       {/* Logout */}
       <Button variant="ghost" fullWidth onClick={handleLogout}>

@@ -182,9 +182,9 @@ export default function OwnerDashboard() {
           <span className="text-xl">🔄</span>
           <p className="text-[10px] text-text-secondary mt-1">Renewals</p>
         </Link>
-        <Link to="/owner/members/import" className="bg-bg-card border border-border rounded-xl p-3 text-center">
+        <Link to="/owner/scan" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">📷</span>
-          <p className="text-[10px] text-text-secondary mt-1">Import</p>
+          <p className="text-[10px] text-text-secondary mt-1">Scan QR</p>
         </Link>
         <Link to="/owner/posts/create" className="bg-bg-card border border-border rounded-xl p-3 text-center">
           <span className="text-xl">📝</span>

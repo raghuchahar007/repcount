@@ -39,3 +39,8 @@ export async function getMyGyms() {
   const { data } = await api.get('/me/gyms')
   return data
 }
+
+export async function selfCheckIn(gymId: string) {
+  const { data } = await api.post('/me/check-in', { gymId })
+  return data
+}

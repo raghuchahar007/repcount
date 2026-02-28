@@ -35,7 +35,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
 export const ownerNavItems: NavItem[] = [
   { href: '/owner', icon: '📊', label: 'Dashboard' },
   { href: '/owner/members', icon: '👥', label: 'Members' },
-  { href: '/owner/leads', icon: '📥', label: 'Leads' },
+  { href: '/owner/scan', icon: '📷', label: 'Scan' },
   { href: '/owner/posts', icon: '📝', label: 'Posts' },
   { href: '/owner/settings', icon: '⚙️', label: 'Settings' },
 ]

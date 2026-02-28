@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getHome } from '@/api/me'
+import { getHome, selfCheckIn } from '@/api/me'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { QrScanner } from '@/components/shared/QrScanner'
 import { BADGE_TYPES, PLAN_TYPES } from '@/utils/constants'
 import { formatDate, daysUntil, todayIST } from '@/utils/helpers'
 
@@ -57,6 +58,9 @@ export default function MemberHome() {
   const [data, setData] = useState<HomeData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showScanner, setShowScanner] = useState(false)
+  const [scanResult, setScanResult] = useState<{ text: string; type: 'success' | 'warning' | 'error' } | null>(null)
+  const [scanLoading, setScanLoading] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -71,6 +75,27 @@ export default function MemberHome() {
       })
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleGymQrScan(qrData: string) {
+    const gymId = qrData.startsWith('repcount:checkin:')
+      ? qrData.replace('repcount:checkin:', '')
+      : qrData
+    if (!gymId || scanLoading) return
+    setScanLoading(true)
+    setShowScanner(false)
+    try {
+      await selfCheckIn(gymId)
+      setScanResult({ text: 'Checked in!', type: 'success' })
+    } catch (err: any) {
+      if (err.response?.status === 409) {
+        setScanResult({ text: 'Already checked in today', type: 'warning' })
+      } else {
+        setScanResult({ text: err.response?.data?.error || 'Check-in failed', type: 'error' })
+      }
+    } finally {
+      setScanLoading(false)
+    }
+  }
 
   if (loading) return <LoadingSpinner text="Loading your dashboard..." />
 
@@ -116,6 +141,62 @@ export default function MemberHome() {
           )}
         </div>
       </Card>
+
+      {/* QR Check-in */}
+      <Link to="/m/qr">
+        <Card>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">📱</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-text-primary">Show My QR</p>
+              <p className="text-text-secondary text-xs">For quick check-in at the gym</p>
+            </div>
+            <span className="text-text-muted text-lg">&rarr;</span>
+          </div>
+        </Card>
+      </Link>
+
+      {/* Scan Gym QR to Check In */}
+      {!checkedInToday && (
+        showScanner ? (
+          <Card>
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Scan Gym QR</h3>
+            <QrScanner
+              onScan={handleGymQrScan}
+              onError={(err) => { setScanResult({ text: err, type: 'error' }); setShowScanner(false) }}
+            />
+            <button
+              onClick={() => setShowScanner(false)}
+              className="w-full text-center text-text-muted text-sm mt-3 py-2"
+            >
+              Cancel
+            </button>
+          </Card>
+        ) : (
+          <button onClick={() => { setShowScanner(true); setScanResult(null) }} className="w-full">
+            <Card>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">📷</span>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-semibold text-text-primary">Scan to Check In</p>
+                  <p className="text-text-secondary text-xs">Scan gym QR at the gate</p>
+                </div>
+                <span className="text-text-muted text-lg">&rarr;</span>
+              </div>
+            </Card>
+          </button>
+        )
+      )}
+
+      {scanResult && (
+        <Card>
+          <p className={`text-sm text-center font-semibold ${
+            scanResult.type === 'success' ? 'text-status-green' :
+            scanResult.type === 'warning' ? 'text-status-yellow' :
+            'text-status-red'
+          }`}>{scanResult.text}</p>
+        </Card>
+      )}
 
       {/* Streak */}
       <Card>

@@ -17,6 +17,40 @@ const router = Router()
 
 // --- Routes that need auth but NOT member context ---
 
+const selfCheckInSchema = z.object({
+  gymId: z.string().min(1, 'Gym ID required'),
+})
+
+// POST /check-in - member self check-in via gym QR
+router.post('/check-in', requireAuth, validate(selfCheckInSchema), async (req: Request, res: Response) => {
+  try {
+    const { gymId } = req.body
+    const member = await Member.findOne({ user: req.user!.userId, gym: gymId })
+    if (!member) {
+      return res.status(404).json({ error: 'You are not a member of this gym' })
+    }
+
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' })
+    const [y, m, d] = today.split('-').map(Number)
+    const checkInDate = new Date(Date.UTC(y, m - 1, d))
+
+    const attendance = await Attendance.create({
+      member: member._id,
+      gym: gymId,
+      check_in_date: checkInDate,
+      checked_in_at: new Date(),
+    })
+
+    res.status(201).json({ message: 'Checked in!', attendance })
+  } catch (err: any) {
+    if (err.code === 11000) {
+      return res.status(409).json({ error: 'Already checked in today' })
+    }
+    console.error('Self check-in error:', err)
+    res.status(500).json({ error: 'Failed to check in' })
+  }
+})
+
 // GET /gyms - list all gyms where member has records
 router.get('/gyms', requireAuth, async (req: Request, res: Response) => {
   try {
