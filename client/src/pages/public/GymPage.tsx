@@ -1,6 +1,8 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPublicGym, getPublicPosts, submitLead } from '@/api/public'
+import { requestJoinGym } from '@/api/me'
+import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -49,10 +51,12 @@ function getPostTypeLabel(postType: string): string {
 
 export default function GymPage() {
   const { slug } = useParams<{ slug: string }>()
+  const { user } = useAuth()
   const [gym, setGym] = useState<Gym | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [joinStatus, setJoinStatus] = useState<'idle' | 'loading' | 'sent' | 'already'>('idle')
 
   // Lead form state
   const [showForm, setShowForm] = useState(false)
@@ -412,6 +416,49 @@ export default function GymPage() {
             </Card>
           )}
         </section>
+
+        {/* ---------------------------------------------------------------- */}
+        {/* Request to Join (logged-in members)                               */}
+        {/* ---------------------------------------------------------------- */}
+        {user && user.role === 'member' && (
+          <Card>
+            <div className="text-center py-2">
+              {joinStatus === 'sent' ? (
+                <>
+                  <span className="text-3xl block mb-2">✅</span>
+                  <p className="text-sm font-semibold text-status-green">Request sent!</p>
+                  <p className="text-text-secondary text-xs mt-1">The gym owner will review your request.</p>
+                </>
+              ) : joinStatus === 'already' ? (
+                <>
+                  <span className="text-3xl block mb-2">⏳</span>
+                  <p className="text-sm font-semibold text-text-primary">Request pending</p>
+                  <p className="text-text-secondary text-xs mt-1">Waiting for the gym owner to approve.</p>
+                </>
+              ) : (
+                <button
+                  onClick={async () => {
+                    setJoinStatus('loading')
+                    try {
+                      await requestJoinGym(slug!)
+                      setJoinStatus('sent')
+                    } catch (err: any) {
+                      if (err?.response?.status === 409) {
+                        setJoinStatus('already')
+                      } else {
+                        setJoinStatus('idle')
+                      }
+                    }
+                  }}
+                  disabled={joinStatus === 'loading'}
+                  className="w-full bg-accent-orange text-white font-semibold text-sm py-3 rounded-xl disabled:opacity-50"
+                >
+                  {joinStatus === 'loading' ? 'Sending...' : 'Request to Join'}
+                </button>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* ---------------------------------------------------------------- */}
         {/* Footer / Branding                                                 */}

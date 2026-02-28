@@ -3,7 +3,9 @@ import { z } from 'zod'
 import { Gym } from '../models/Gym'
 import { GymPost } from '../models/GymPost'
 import { Lead } from '../models/Lead'
+import { User } from '../models/User'
 import { validate } from '../middleware/validate'
+import { requireAuth } from '../middleware/auth'
 
 const router = Router()
 
@@ -102,6 +104,45 @@ router.post(
       }
       console.error('submit lead error:', err)
       res.status(500).json({ error: 'Failed to submit lead' })
+    }
+  },
+)
+
+// POST /api/public/gym/:slug/request-join — Member requests to join gym
+router.post(
+  '/gym/:slug/request-join',
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const gym = await Gym.findOne({ slug: req.params.slug }).select('_id').lean()
+      if (!gym) {
+        return res.status(404).json({ error: 'Gym not found' })
+      }
+      const user = await User.findById(req.user!.userId).lean()
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' })
+      }
+
+      const existing = await Lead.findOne({ gym: gym._id, user: req.user!.userId })
+      if (existing) {
+        return res.status(409).json({ error: 'Already requested', status: existing.status })
+      }
+
+      await Lead.create({
+        gym: gym._id,
+        user: req.user!.userId,
+        name: user.full_name || user.phone,
+        phone: user.phone.replace('+91', ''),
+        source: 'app_request',
+        status: 'new',
+      })
+      res.status(201).json({ message: 'Join request sent' })
+    } catch (err: any) {
+      if (err.code === 11000) {
+        return res.status(409).json({ error: 'Already requested' })
+      }
+      console.error('request join error:', err)
+      res.status(500).json({ error: 'Failed to send request' })
     }
   },
 )

@@ -49,3 +49,13 @@ export async function discoverGyms(q?: string) {
   const { data } = await api.get('/public/gyms', { params: q ? { q } : {} })
   return data
 }
+
+export async function requestJoinGym(slug: string) {
+  const { data } = await api.post(`/public/gym/${slug}/request-join`)
+  return data
+}
+
+export async function getJoinStatus() {
+  const { data } = await api.get('/me/join-status')
+  return data
+}

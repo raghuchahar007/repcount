@@ -6,6 +6,7 @@ import { requireMember } from '../middleware/roleGuard'
 import { requireMemberContext } from '../middleware/memberContext'
 import { validate } from '../middleware/validate'
 import { User } from '../models/User'
+import { Lead } from '../models/Lead'
 import { Member } from '../models/Member'
 import { Membership } from '../models/Membership'
 import { Attendance } from '../models/Attendance'
@@ -105,6 +106,21 @@ router.post('/join-gym', requireAuth, validate(joinGymSchema), async (req: Reque
     if (err.code === 11000) return res.status(409).json({ error: 'Already a member of this gym' })
     console.error('Join gym error:', err)
     res.status(500).json({ error: 'Failed to join gym' })
+  }
+})
+
+// GET /join-status — Check pending join requests
+router.get('/join-status', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const leads = await Lead.find({
+      user: req.user!.userId,
+      source: 'app_request',
+      status: { $in: ['new', 'contacted'] },
+    }).populate('gym', 'name slug').lean()
+    res.json(leads)
+  } catch (err: any) {
+    console.error('join status error:', err)
+    res.status(500).json({ error: 'Failed to check join status' })
   }
 })
 
