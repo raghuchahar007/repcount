@@ -1,7 +1,9 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
 export interface IUser extends Document {
-  phone: string
+  phone: string | null
+  email: string | null
+  password_hash: string | null
   role: 'owner' | 'member' | 'admin' | null
   full_name: string | null
   avatar_url: string | null
@@ -9,7 +11,9 @@ export interface IUser extends Document {
 }
 
 const userSchema = new Schema<IUser>({
-  phone: { type: String, required: true, unique: true },
+  phone: { type: String, default: null, sparse: true, unique: true },
+  email: { type: String, default: null, sparse: true, unique: true },
+  password_hash: { type: String, default: null },
   role: { type: String, enum: ['owner', 'member', 'admin', null], default: null },
   full_name: { type: String, default: null },
   avatar_url: { type: String, default: null },
