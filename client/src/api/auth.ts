@@ -27,3 +27,15 @@ export async function setRole(role: 'owner' | 'member') {
   setAccessToken(data.accessToken)
   return data
 }
+
+export async function register(name: string, email: string, password: string, phone?: string) {
+  const { data } = await api.post('/auth/register', { name, email, password, phone: phone || undefined })
+  setAccessToken(data.accessToken)
+  return data
+}
+
+export async function loginWithEmail(email: string, password: string) {
+  const { data } = await api.post('/auth/login', { email, password })
+  setAccessToken(data.accessToken)
+  return data
+}
