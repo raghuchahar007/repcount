@@ -13,6 +13,7 @@ import RenewalsPage from '@/pages/owner/Renewals'
 import LeadsPage from '@/pages/owner/Leads'
 import PostsPage from '@/pages/owner/Posts'
 import CreatePostPage from '@/pages/owner/CreatePost'
+import JoinRequestsPage from '@/pages/owner/JoinRequests'
 import SettingsPage from '@/pages/owner/Settings'
 import ScanCheckinPage from '@/pages/owner/ScanCheckin'
 import ChooseRole from '@/pages/ChooseRole'
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="leads" element={<LeadsPage />} />
           <Route path="posts" element={<PostsPage />} />
           <Route path="posts/create" element={<CreatePostPage />} />
+          <Route path="join-requests" element={<JoinRequestsPage />} />
           <Route path="scan" element={<ScanCheckinPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>

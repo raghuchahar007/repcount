@@ -14,6 +14,7 @@ interface DashboardStats {
   expiringCount: number
   inactiveCount: number
   newLeadsCount: number
+  joinRequests: number
   monthRevenue: number
   todayAttendance: number
 }
@@ -34,7 +35,7 @@ export default function OwnerDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalMembers: 0, activeMembers: 0, overdueCount: 0,
     expiringCount: 0, inactiveCount: 0, newLeadsCount: 0,
-    monthRevenue: 0, todayAttendance: 0,
+    joinRequests: 0, monthRevenue: 0, todayAttendance: 0,
   })
   const [recentMembers, setRecentMembers] = useState<RecentMember[]>([])
   const [gymId, setGymId] = useState<string | null>(null)
@@ -64,6 +65,7 @@ export default function OwnerDashboard() {
         expiringCount: data.expiringCount || 0,
         inactiveCount: data.inactiveCount || 0,
         newLeadsCount: data.newLeadsCount || 0,
+        joinRequests: data.joinRequests || 0,
         monthRevenue: data.monthRevenue || 0,
         todayAttendance: data.todayAttendance || 0,
       })
@@ -137,6 +139,20 @@ export default function OwnerDashboard() {
           </div>
         </div>
       </Card>
+
+      {/* Join Requests Alert */}
+      {stats.joinRequests > 0 && (
+        <Link to="/owner/join-requests">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-3 flex items-center gap-3">
+            <span className="text-2xl">🙋</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-text-primary">{stats.joinRequests} join request{stats.joinRequests > 1 ? 's' : ''}</p>
+              <p className="text-text-secondary text-xs">Tap to review</p>
+            </div>
+            <span className="text-text-muted">&rarr;</span>
+          </div>
+        </Link>
+      )}
 
       {/* Alert Cards */}
       <div className="grid grid-cols-2 gap-3">

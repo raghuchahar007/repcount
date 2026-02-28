@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import { Lead } from '../models/Lead'
+import { Member } from '../models/Member'
+import { User } from '../models/User'
 import { requireAuth } from '../middleware/auth'
 import { requireOwner } from '../middleware/roleGuard'
 import { requireGymAccess } from '../middleware/gymAccess'
@@ -36,6 +38,10 @@ router.get(
 
       if (req.query.status && typeof req.query.status === 'string') {
         filter.status = req.query.status
+      }
+
+      if (req.query.source && typeof req.query.source === 'string') {
+        filter.source = req.query.source
       }
 
       const leads = await Lead.find(filter).sort({ created_at: -1 }).lean()
@@ -82,6 +88,66 @@ router.put(
     } catch (err: any) {
       console.error('update lead error:', err)
       res.status(500).json({ error: 'Failed to update lead' })
+    }
+  },
+)
+
+// PUT /api/gym/:gymId/leads/:leadId/approve — Approve join request
+router.put(
+  '/:leadId/approve',
+  requireAuth, requireOwner, requireGymAccess,
+  async (req: Request, res: Response) => {
+    try {
+      const { leadId, gymId } = req.params
+      const lead = await Lead.findOne({ _id: leadId, gym: gymId, source: 'app_request' })
+      if (!lead) return res.status(404).json({ error: 'Join request not found' })
+      if (lead.status === 'converted') return res.status(409).json({ error: 'Already approved' })
+
+      // Create member record
+      const existing = await Member.findOne({ gym: gymId, phone: lead.phone })
+      if (existing) {
+        if (!existing.user && lead.user) {
+          existing.user = lead.user
+          await existing.save()
+        }
+      } else {
+        await Member.create({
+          gym: gymId,
+          user: lead.user,
+          name: lead.name,
+          phone: lead.phone,
+          goal: lead.goal || 'general',
+        })
+      }
+
+      lead.status = 'converted'
+      await lead.save()
+
+      res.json({ message: 'Member approved' })
+    } catch (err: any) {
+      console.error('approve join error:', err)
+      res.status(500).json({ error: 'Failed to approve' })
+    }
+  },
+)
+
+// PUT /api/gym/:gymId/leads/:leadId/reject — Reject join request
+router.put(
+  '/:leadId/reject',
+  requireAuth, requireOwner, requireGymAccess,
+  async (req: Request, res: Response) => {
+    try {
+      const { leadId, gymId } = req.params
+      const lead = await Lead.findOneAndUpdate(
+        { _id: leadId, gym: gymId, source: 'app_request' },
+        { status: 'lost' },
+        { new: true },
+      )
+      if (!lead) return res.status(404).json({ error: 'Join request not found' })
+      res.json({ message: 'Request rejected' })
+    } catch (err: any) {
+      console.error('reject join error:', err)
+      res.status(500).json({ error: 'Failed to reject' })
     }
   },
 )

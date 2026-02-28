@@ -43,6 +43,7 @@ router.get(
         overdueCount,
         expiringCount,
         newLeadsCount,
+        joinRequests,
         monthRevenueResult,
         todayAttendance,
         recentMembers,
@@ -64,6 +65,9 @@ router.get(
 
         // New leads
         Lead.countDocuments({ gym: gymId, status: 'new' }),
+
+        // Join requests (app_request leads with status new)
+        Lead.countDocuments({ gym: gymId, source: 'app_request', status: 'new' }),
 
         // Month revenue — use ObjectId for aggregation pipeline
         Membership.aggregate([
@@ -133,6 +137,7 @@ router.get(
         overdueCount,
         expiringCount,
         newLeadsCount,
+        joinRequests,
         monthRevenue,
         todayAttendance,
         inactiveCount,
