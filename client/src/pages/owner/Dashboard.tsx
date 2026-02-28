@@ -44,6 +44,10 @@ export default function OwnerDashboard() {
 
   useEffect(() => {
     loadDashboard()
+
+    const handleFocus = () => loadDashboard()
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
   async function loadDashboard() {
