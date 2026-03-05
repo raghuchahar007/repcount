@@ -135,7 +135,7 @@ router.get(
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
       const result = await Attendance.aggregate([
-        { $match: { gym: new mongoose.Types.ObjectId(gymId), checked_in_at: { $gte: thirtyDaysAgo } } },
+        { $match: { gym: new mongoose.Types.ObjectId(gymId as string), checked_in_at: { $gte: thirtyDaysAgo } } },
         { $group: { _id: { $hour: '$checked_in_at' }, count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
       ])
