@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getMyGym } from '@/api/gym'
 import { getDashboard } from '@/api/memberships'
+import { getTodayAttendance, getBusyHours } from '@/api/owner'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -43,6 +44,9 @@ export default function OwnerDashboard() {
   const [gymId, setGymId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [todayCheckIns, setTodayCheckIns] = useState<{ name: string; time: string }[]>([])
+  const [busyHours, setBusyHours] = useState<{ hour: number; count: number }[]>([])
+  const [showToday, setShowToday] = useState(false)
 
   useEffect(() => {
     loadDashboard()
@@ -63,7 +67,16 @@ export default function OwnerDashboard() {
       }
       setGymId(gym._id)
 
-      const data = await getDashboard(gym._id)
+      const [data, att, bh] = await Promise.all([
+        getDashboard(gym._id),
+        getTodayAttendance(gym._id).catch(() => ({ data: [], count: 0 })),
+        getBusyHours(gym._id).catch(() => []),
+      ])
+      setTodayCheckIns(att.data.map((r: any) => ({
+        name: r.member?.name || 'Unknown',
+        time: new Date(r.checked_in_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
+      })))
+      setBusyHours(bh)
       setStats({
         totalMembers: data.totalMembers || 0,
         activeMembers: (data.totalMembers || 0) - (data.inactiveCount || 0),
@@ -204,6 +217,48 @@ export default function OwnerDashboard() {
           <p className="text-[10px] text-text-secondary mt-1">New Post</p>
         </Link>
       </div>
+
+      {/* Today's Check-ins */}
+      <Card className="p-4">
+        <button onClick={() => setShowToday(v => !v)} className="w-full flex items-center justify-between">
+          <span className="font-semibold text-text-primary">Today's Check-ins</span>
+          <span className="text-accent-primary font-bold">{todayCheckIns.length}</span>
+        </button>
+        {showToday && (
+          <div className="mt-3 space-y-2">
+            {todayCheckIns.length === 0
+              ? <p className="text-text-secondary text-sm">No check-ins yet today</p>
+              : todayCheckIns.map((r, i) => (
+                <div key={i} className="flex justify-between text-sm">
+                  <span className="text-text-primary">{r.name}</span>
+                  <span className="text-text-secondary">{r.time}</span>
+                </div>
+              ))}
+          </div>
+        )}
+      </Card>
+
+      {/* Busy Hours */}
+      {busyHours.length > 0 && (() => {
+        const maxCount = Math.max(...busyHours.map(h => h.count), 1)
+        const relevantHours = busyHours.filter(h => h.hour >= 5 && h.hour <= 23)
+        return (
+          <Card className="p-4">
+            <p className="font-semibold text-text-primary mb-3">Busy Hours (last 30 days)</p>
+            <div className="flex items-end gap-1 h-16">
+              {relevantHours.map(h => (
+                <div key={h.hour} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className="w-full bg-accent-primary rounded-t-sm"
+                    style={{ height: `${(h.count / maxCount) * 100}%`, minHeight: h.count > 0 ? '4px' : '0' }}
+                  />
+                  <span className="text-[10px] text-text-secondary">{h.hour > 12 ? `${h.hour - 12}p` : `${h.hour}a`}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )
+      })()}
 
       {/* Recent Members */}
       <div>
