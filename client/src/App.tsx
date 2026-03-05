@@ -29,6 +29,7 @@ import MyQRPage from '@/pages/member/MyQR'
 import DiscoverGymsPage from '@/pages/member/DiscoverGyms'
 import Register from '@/pages/Register'
 import LandingPage from '@/pages/public/LandingPage'
+import ClaimsPage from '@/pages/super-admin/Claims'
 
 export default function App() {
   return (
@@ -77,6 +78,7 @@ export default function App() {
         </Route>
 
         <Route path="/gym/:slug" element={<GymPage />} />
+        <Route path="/admin/claims" element={<ClaimsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
