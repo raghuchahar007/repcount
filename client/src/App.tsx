@@ -14,6 +14,7 @@ import CreatePostPage from '@/pages/owner/CreatePost'
 import JoinRequestsPage from '@/pages/owner/JoinRequests'
 import SettingsPage from '@/pages/owner/Settings'
 import ScanCheckinPage from '@/pages/owner/ScanCheckin'
+import OwnerProfile from '@/pages/owner/Profile'
 import ChooseRole from '@/pages/ChooseRole'
 import JoinGymPage from '@/pages/member/JoinGym'
 import GymPage from '@/pages/public/GymPage'
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="join-requests" element={<JoinRequestsPage />} />
           <Route path="scan" element={<ScanCheckinPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="profile" element={<OwnerProfile />} />
         </Route>
 
         <Route path="/m" element={

@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { getPublicGym, getPublicPosts, submitLead } from '@/api/public'
+import { getPublicGym, getPublicPosts, submitLead, submitGymClaim } from '@/api/public'
 import { requestJoinGym } from '@/api/me'
 import { useAuth } from '@/contexts/AuthContext'
 import { Card } from '@/components/ui/Card'
@@ -12,14 +12,18 @@ import { formatCurrency, formatDate } from '@/utils/helpers'
 import { POST_TYPES, GOALS, PLAN_TYPES } from '@/utils/constants'
 
 interface Gym {
+  _id: string
   name: string
   city?: string
   address?: string
   phone?: string
   description?: string
+  timing_mode?: 'slots' | '24x7'
+  timing_slots?: { label: string; open: string; close: string }[]
   opening_time?: string
   closing_time?: string
-  pricing?: Record<string, number>
+  pricing?: Record<string, any>
+  plan_types?: { id: string; name: string }[]
   facilities?: string[]
   upi_id?: string
 }
@@ -68,6 +72,12 @@ export default function GymPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState('')
+
+  // Claim form state
+  const [showClaim, setShowClaim] = useState(false)
+  const [claimForm, setClaimForm] = useState({ claimant_name: '', claimant_phone: '', claimant_email: '', reason: '' })
+  const [claimSent, setClaimSent] = useState(false)
+  const [claimLoading, setClaimLoading] = useState(false)
 
   useEffect(() => {
     if (!slug) return
@@ -461,6 +471,56 @@ export default function GymPage() {
             </div>
           </Card>
         )}
+
+        {/* Gym Claim Section */}
+        <div className="mt-8 pt-6 border-t border-border-light">
+          {!showClaim ? (
+            <button onClick={() => setShowClaim(true)} className="text-xs text-text-secondary underline">
+              Claim this gym
+            </button>
+          ) : claimSent ? (
+            <p className="text-sm text-text-secondary text-center">
+              Claim submitted. We'll review it within 2–3 business days.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-text-primary">Claim this gym</p>
+              <p className="text-xs text-text-secondary">If you own this gym and didn't register it, fill this form.</p>
+              <Input label="Your Name" value={claimForm.claimant_name}
+                onChange={e => setClaimForm({ ...claimForm, claimant_name: e.target.value })} />
+              <Input label="Phone (10 digits)" value={claimForm.claimant_phone}
+                onChange={e => setClaimForm({ ...claimForm, claimant_phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} />
+              <Input label="Email" type="email" value={claimForm.claimant_email}
+                onChange={e => setClaimForm({ ...claimForm, claimant_email: e.target.value })} />
+              <div>
+                <label className="block text-sm text-text-secondary mb-1">Reason</label>
+                <textarea
+                  className="w-full bg-bg-card border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary"
+                  rows={3}
+                  placeholder="I am the owner of this gym and..."
+                  value={claimForm.reason}
+                  onChange={e => setClaimForm({ ...claimForm, reason: e.target.value })}
+                />
+              </div>
+              <Button
+                fullWidth
+                loading={claimLoading}
+                onClick={async () => {
+                  if (!gym) return
+                  setClaimLoading(true)
+                  try {
+                    await submitGymClaim(gym._id, claimForm)
+                    setClaimSent(true)
+                  } catch {
+                    setSubmitError('Failed to submit claim')
+                  } finally {
+                    setClaimLoading(false)
+                  }
+                }}
+              >Submit Claim</Button>
+            </div>
+          )}
+        </div>
 
         {/* ---------------------------------------------------------------- */}
         {/* Footer / Branding                                                 */}
