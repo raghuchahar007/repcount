@@ -7,6 +7,7 @@
     "start": "node dist/server.js",
     "seed": "npx ts-node src/scripts/seed.ts",
     "drop-indexes": "npx ts-node src/scripts/drop-stale-indexes.ts",
+    "migrate-gym-schema": "npx ts-node src/scripts/migrate-gym-schema.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
