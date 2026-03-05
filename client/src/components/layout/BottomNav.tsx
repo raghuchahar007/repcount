@@ -38,6 +38,7 @@ export const ownerNavItems: NavItem[] = [
   { href: '/owner/scan', icon: '📷', label: 'Scan' },
   { href: '/owner/posts', icon: '📝', label: 'Posts' },
   { href: '/owner/settings', icon: '⚙️', label: 'Settings' },
+  { href: '/owner/profile', icon: '👤', label: 'Profile' },
 ]
 
 export const memberNavItems: NavItem[] = [

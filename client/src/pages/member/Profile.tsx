@@ -24,6 +24,7 @@ interface MemberProfile {
 interface Membership {
   _id: string
   plan_type: string
+  plan_type_name: string | null
   amount: number
   start_date: string
   expiry_date: string
@@ -151,12 +152,45 @@ export default function ProfilePage() {
   const { member, memberships } = data
   const earnedBadgeTypes = new Set(member.badges.map((b) => b.badge_type))
 
+  const activeMembership = memberships
+    .filter(m => new Date(m.expiry_date) > new Date())
+    .sort((a, b) => new Date(b.expiry_date).getTime() - new Date(a.expiry_date).getTime())[0]
+
+  function daysUntil(dateStr: string): number {
+    return Math.max(0, Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+  }
+
   // Determine if form has changed from server values
   const hasChanges =
     (name !== (member.name || '')) || (goal !== (member.goal || '')) || (dietPref !== (member.diet_pref || ''))
 
   return (
     <div className="p-4 space-y-4">
+      {/* Active Membership Card */}
+      {activeMembership ? (
+        <Card className="p-4 border border-accent-primary/30 bg-accent-primary/5">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs text-text-secondary uppercase tracking-wide">Active Plan</p>
+              <p className="font-bold text-text-primary mt-0.5">
+                {activeMembership.plan_type_name || PLAN_TYPES.find(p => p.value === activeMembership.plan_type)?.label || activeMembership.plan_type}
+              </p>
+              <p className="text-sm text-text-secondary mt-1">
+                Expires {formatDate(activeMembership.expiry_date)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-accent-primary">{daysUntil(activeMembership.expiry_date)}</p>
+              <p className="text-xs text-text-secondary">days left</p>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <Card className="p-4 text-center">
+          <p className="text-text-secondary text-sm">No active membership</p>
+        </Card>
+      )}
+
       {/* Profile Header */}
       <Card variant="gradient">
         <div className="flex items-center gap-4">

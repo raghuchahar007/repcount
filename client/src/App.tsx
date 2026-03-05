@@ -1,7 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import Login from '@/pages/Login'
 import VerifyOtp from '@/pages/VerifyOtp'
 import OwnerLayout from '@/components/layout/OwnerLayout'
@@ -16,6 +14,7 @@ import CreatePostPage from '@/pages/owner/CreatePost'
 import JoinRequestsPage from '@/pages/owner/JoinRequests'
 import SettingsPage from '@/pages/owner/Settings'
 import ScanCheckinPage from '@/pages/owner/ScanCheckin'
+import OwnerProfile from '@/pages/owner/Profile'
 import ChooseRole from '@/pages/ChooseRole'
 import JoinGymPage from '@/pages/member/JoinGym'
 import GymPage from '@/pages/public/GymPage'
@@ -29,20 +28,14 @@ import ProfilePage from '@/pages/member/Profile'
 import MyQRPage from '@/pages/member/MyQR'
 import DiscoverGymsPage from '@/pages/member/DiscoverGyms'
 import Register from '@/pages/Register'
-
-function RootRedirect() {
-  const { user, loading } = useAuth()
-  if (loading) return <LoadingSpinner />
-  if (!user) return <Navigate to="/login" replace />
-  if (!user.role) return <Navigate to="/choose-role" replace />
-  return <Navigate to={user.role === 'owner' ? '/owner' : '/m'} replace />
-}
+import LandingPage from '@/pages/public/LandingPage'
+import ClaimsPage from '@/pages/super-admin/Claims'
 
 export default function App() {
   return (
     <div className="max-w-mobile mx-auto min-h-screen">
       <Routes>
-        <Route path="/" element={<RootRedirect />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify" element={<VerifyOtp />} />
@@ -65,6 +58,7 @@ export default function App() {
           <Route path="join-requests" element={<JoinRequestsPage />} />
           <Route path="scan" element={<ScanCheckinPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="profile" element={<OwnerProfile />} />
         </Route>
 
         <Route path="/m" element={
@@ -84,6 +78,7 @@ export default function App() {
         </Route>
 
         <Route path="/gym/:slug" element={<GymPage />} />
+        <Route path="/admin/claims" element={<ClaimsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

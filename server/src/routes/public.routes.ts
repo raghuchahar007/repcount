@@ -23,11 +23,11 @@ router.get(
         ]
       }
       const gyms = await Gym.find(filter)
-        .select('name slug city address facilities pricing')
-        .sort({ name: 1 })
+        .select('slug name city logo_url facilities timing_mode timing_slots description')
+        .sort({ created_at: -1 })
         .limit(50)
         .lean()
-      res.json(gyms)
+      res.json({ data: gyms })
     } catch (err: any) {
       console.error('list public gyms error:', err)
       res.status(500).json({ error: 'Failed to fetch gyms' })

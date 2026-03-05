@@ -16,10 +16,11 @@ const createGymSchema = z.object({
   address: z.string().optional(),
   phone: z.string().optional(),
   description: z.string().optional(),
-  opening_time: z.string().optional(),
-  closing_time: z.string().optional(),
+  timing_mode: z.enum(['slots', '24x7']).optional(),
+  timing_slots: z.array(z.object({ label: z.string(), open: z.string(), close: z.string() })).optional(),
+  plan_types: z.array(z.object({ id: z.string(), name: z.string() })).optional(),
   upi_id: z.string().optional(),
-  pricing: z.record(z.number()).optional(),
+  pricing: z.record(z.record(z.number())).optional(),
   facilities: z.array(z.string()).optional(),
 })
 
@@ -33,6 +34,9 @@ router.post('/', requireAuth, requireOwner, validate(createGymSchema), async (re
     if (existing) {
       return res.status(409).json({ error: 'You already have a gym' })
     }
+
+    // Normalize city before save
+    if (req.body.city) req.body.city = req.body.city.trim().toLowerCase()
 
     const gym = await Gym.create({ ...req.body, owner: req.user!.userId })
 

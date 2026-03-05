@@ -20,14 +20,14 @@ export default function ScanCheckinPage() {
     setLoading(true)
     setScanning(false)
     try {
-      await checkInMember(gymId, memberId)
-      setResult({ text: 'Checked in!', type: 'success' })
-    } catch (err: any) {
-      if (err.response?.status === 409) {
-        setResult({ text: 'Already checked in today', type: 'warning' })
+      const result = await checkInMember(gymId, memberId)
+      if (result.already_checked_in) {
+        setResult({ text: result.message, type: 'warning' })
       } else {
-        setResult({ text: err.response?.data?.error || 'Check-in failed', type: 'error' })
+        setResult({ text: 'Checked in!', type: 'success' })
       }
+    } catch (err: any) {
+      setResult({ text: err.response?.data?.error || 'Check-in failed', type: 'error' })
     } finally {
       setLoading(false)
     }

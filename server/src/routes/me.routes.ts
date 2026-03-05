@@ -131,6 +131,67 @@ router.get('/join-status', requireAuth, async (req: Request, res: Response) => {
   }
 })
 
+// POST /join-gym-request — member requests to join a gym (request-only flow)
+router.post('/join-gym-request', requireAuth, validate(joinGymSchema), async (req: Request, res: Response) => {
+  try {
+    const gym = await Gym.findOne({ slug: req.body.slug }).lean()
+    if (!gym) return res.status(404).json({ error: 'Gym not found' })
+
+    const existing = await Lead.findOne({ gym: gym._id, user: req.user!.userId })
+    if (existing) {
+      return res.status(409).json({ error: 'Already requested', status: existing.status })
+    }
+
+    const user = await User.findById(req.user!.userId).lean()
+    await Lead.create({
+      gym: gym._id,
+      user: req.user!.userId,
+      name: user?.full_name || '',
+      phone: user?.phone ? user.phone.replace('+91', '') : '',
+      source: 'app_request',
+      status: 'new',
+    })
+
+    res.status(201).json({ success: true, gymId: gym._id })
+  } catch (err: any) {
+    if (err.code === 11000) return res.status(409).json({ error: 'Already requested' })
+    console.error('join gym request error:', err)
+    res.status(500).json({ error: 'Failed to send request' })
+  }
+})
+
+// GET /join-requests — get pending join requests for current user
+router.get('/join-requests', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const requests = await Lead.find({
+      user: req.user!.userId,
+      source: 'app_request',
+      status: 'new',
+    }).populate('gym', 'name city slug').lean()
+    res.json({ data: requests })
+  } catch (err: any) {
+    console.error('join requests error:', err)
+    res.status(500).json({ error: 'Failed to fetch requests' })
+  }
+})
+
+// DELETE /join-request/:gymId — cancel a pending join request
+router.delete('/join-request/:gymId', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const lead = await Lead.findOneAndDelete({
+      gym: req.params.gymId,
+      user: req.user!.userId,
+      source: 'app_request',
+      status: 'new',
+    })
+    if (!lead) return res.status(404).json({ error: 'No pending request found' })
+    res.json({ success: true })
+  } catch (err: any) {
+    console.error('cancel join request error:', err)
+    res.status(500).json({ error: 'Failed to cancel request' })
+  }
+})
+
 // --- Routes that need full member context ---
 router.use(requireAuth, requireMember, requireMemberContext)
 

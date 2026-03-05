@@ -6,7 +6,10 @@
     "build": "npx tsc",
     "start": "node dist/server.js",
     "seed": "npx ts-node src/scripts/seed.ts",
-    "drop-indexes": "npx ts-node src/scripts/drop-stale-indexes.ts"
+    "drop-indexes": "npx ts-node src/scripts/drop-stale-indexes.ts",
+    "migrate-gym-schema": "npx ts-node src/scripts/migrate-gym-schema.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -28,6 +31,7 @@
     "@types/node": "^22.0.0",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
   }
 }

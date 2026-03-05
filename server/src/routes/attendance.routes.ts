@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
+import mongoose from 'mongoose'
 import { Attendance } from '../models/Attendance'
 import { Member } from '../models/Member'
 import { checkAndAwardBadges } from '../services/badge.service'
@@ -52,10 +53,24 @@ router.post(
         console.error('checkAndAwardBadges error:', err),
       )
 
-      res.status(201).json(attendance)
+      res.status(201).json({ success: true, message: 'Checked in successfully' })
     } catch (err: any) {
       if (err.code === 11000) {
-        return res.status(409).json({ error: 'Member already checked in today' })
+        // Already checked in today — find existing record for friendly time message
+        const today = todayIST()
+        const checkInDate = dateFromString(today)
+        const existing = await Attendance.findOne({
+          member: req.body.member_id,
+          gym: req.params.gymId,
+          check_in_date: checkInDate,
+        })
+        const timeStr = existing
+          ? existing.checked_in_at.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+          : 'earlier today'
+        return res.status(200).json({
+          already_checked_in: true,
+          message: `Already checked in today at ${timeStr}`,
+        })
       }
       console.error('check-in error:', err)
       res.status(500).json({ error: 'Failed to record check-in' })
@@ -82,6 +97,58 @@ router.get(
     } catch (err: any) {
       console.error('list attendance error:', err)
       res.status(500).json({ error: 'Failed to fetch attendance' })
+    }
+  },
+)
+
+// ─── GET /api/gym/:gymId/attendance/today — today's check-ins ──────────────
+router.get(
+  '/today',
+  requireAuth, requireOwner, requireGymAccess,
+  async (req: Request, res: Response) => {
+    try {
+      const { gymId } = req.params
+      const today = todayIST()
+      const checkInDate = dateFromString(today)
+
+      const records = await Attendance.find({ gym: gymId, check_in_date: checkInDate })
+        .populate('member', 'name phone')
+        .sort({ checked_in_at: -1 })
+        .lean()
+
+      res.json({ data: records, count: records.length })
+    } catch (err: any) {
+      console.error('today attendance error:', err)
+      res.status(500).json({ error: 'Failed to fetch today attendance' })
+    }
+  },
+)
+
+// ─── GET /api/gym/:gymId/attendance/busy-hours — hourly distribution ────────
+router.get(
+  '/busy-hours',
+  requireAuth, requireOwner, requireGymAccess,
+  async (req: Request, res: Response) => {
+    try {
+      const { gymId } = req.params
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const result = await Attendance.aggregate([
+        { $match: { gym: new mongoose.Types.ObjectId(gymId as string), checked_in_at: { $gte: thirtyDaysAgo } } },
+        { $group: { _id: { $hour: '$checked_in_at' }, count: { $sum: 1 } } },
+        { $sort: { _id: 1 } },
+      ])
+
+      const hours = Array.from({ length: 24 }, (_, h) => {
+        const found = result.find((r: any) => r._id === h)
+        return { hour: h, count: found ? found.count : 0 }
+      })
+
+      res.json({ data: hours })
+    } catch (err: any) {
+      console.error('busy hours error:', err)
+      res.status(500).json({ error: 'Failed to fetch busy hours' })
     }
   },
 )
