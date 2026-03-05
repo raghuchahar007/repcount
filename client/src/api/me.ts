@@ -74,3 +74,18 @@ export async function leaveGym() {
   const { data } = await api.delete('/me/leave-gym')
   return data
 }
+
+export async function requestToJoinGym(slug: string) {
+  const { data } = await api.post('/me/join-gym-request', { slug })
+  return data
+}
+
+export async function cancelJoinRequest(gymId: string) {
+  const { data } = await api.delete(`/me/join-request/${gymId}`)
+  return data
+}
+
+export async function getPendingJoinRequests() {
+  const { data } = await api.get('/me/join-requests')
+  return data.data
+}
