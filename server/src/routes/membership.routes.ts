@@ -26,6 +26,7 @@ function todayIST(): Date {
 const recordPaymentSchema = z.object({
   member_id: z.string().min(1, 'Member ID is required'),
   plan_type: z.enum(['monthly', 'quarterly', 'half_yearly', 'yearly']),
+  plan_type_name: z.string().optional(),
   amount: z.number().positive('Amount must be positive'),
   payment_method: z.enum(['cash', 'upi', 'card', 'online']),
 })
@@ -37,7 +38,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { gymId } = req.params
-      const { member_id, plan_type, amount, payment_method } = req.body
+      const { member_id, plan_type, plan_type_name, amount, payment_method } = req.body
 
       // Verify member belongs to this gym
       const member = await Member.findOne({ _id: member_id, gym: gymId })
@@ -59,6 +60,7 @@ router.post(
         member: member_id,
         gym: gymId,
         plan_type,
+        plan_type_name: plan_type_name || null,
         amount,
         payment_method,
         start_date: startDate,

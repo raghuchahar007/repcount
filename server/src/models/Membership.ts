@@ -7,6 +7,7 @@ export interface IMembership extends Document {
   amount: number
   start_date: Date
   expiry_date: Date
+  plan_type_name: string | null
   payment_method: 'cash' | 'upi' | 'card' | 'online'
   status: 'active' | 'expired' | 'cancelled'
   paid_at: Date
@@ -20,6 +21,7 @@ const membershipSchema = new Schema<IMembership>({
   amount: { type: Number, required: true },
   start_date: { type: Date, required: true },
   expiry_date: { type: Date, required: true },
+  plan_type_name: { type: String, default: null },
   payment_method: { type: String, enum: ['cash', 'upi', 'card', 'online'], default: 'cash' },
   status: { type: String, enum: ['active', 'expired', 'cancelled'], default: 'active' },
   paid_at: { type: Date, default: Date.now },
