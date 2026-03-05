@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { register } from '@/api/auth'
 import { useAuth } from '@/contexts/AuthContext'
@@ -13,7 +13,13 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate(user.role === 'owner' ? '/owner' : '/m', { replace: true })
+    }
+  }, [user, authLoading, navigate])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -35,7 +41,14 @@ export default function Register() {
       login(data.accessToken, data.user)
       navigate('/choose-role', { replace: true })
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed')
+      const msg = err.response?.data?.error || ''
+      if (msg.toLowerCase().includes('phone') || (err.response?.status === 409 && msg.toLowerCase().includes('phone'))) {
+        setError('This phone number is already registered')
+      } else if (err.response?.status === 409) {
+        setError('This email is already registered')
+      } else {
+        setError(msg || 'Registration failed')
+      }
     } finally {
       setLoading(false)
     }
